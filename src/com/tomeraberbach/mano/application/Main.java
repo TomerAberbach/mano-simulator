@@ -11,6 +11,7 @@ import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.text.Font;
 import javafx.stage.FileChooser;
+import javafx.stage.Modality;
 import javafx.stage.Stage;
 
 import java.io.File;
@@ -75,6 +76,7 @@ public class Main extends Application {
                     Stage stage = new Stage();
 
                     stage.setTitle(TITLE);
+                    stage.initModality(Modality.APPLICATION_MODAL);
                     stage.setScene(scene);
                     stage.showAndWait();
                 } catch (IOException ignored) { }
