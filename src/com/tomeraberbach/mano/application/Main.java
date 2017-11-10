@@ -2,6 +2,7 @@ package com.tomeraberbach.mano.application;
 
 import com.tomeraberbach.mano.assembly.Compiler;
 import javafx.application.Application;
+import javafx.application.Platform;
 import javafx.beans.value.ChangeListener;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
@@ -151,21 +152,7 @@ public class Main extends Application {
             Code code = codes.get(tabsFX.getSelectionModel().getSelectedIndex());
 
             if (code.tab().getText().endsWith("*")) {
-                Alert alert = getUnsavedAlert();
-
-                alert.showAndWait().ifPresent(t -> {
-                    if (t == ButtonType.YES) {
-                        saveOnAction();
-
-                        if (!code.tab().getText().endsWith("*")) {
-                            codes.remove(tabsFX.getSelectionModel().getSelectedIndex());
-                            tabsFX.getTabs().remove(tabsFX.getSelectionModel().getSelectedIndex());
-                        }
-                    } else if (t == ButtonType.NO) {
-                        codes.remove(tabsFX.getSelectionModel().getSelectedIndex());
-                        tabsFX.getTabs().remove(tabsFX.getSelectionModel().getSelectedIndex());
-                    }
-                });
+                showUnsavedAlert(getUnsavedAlert(), code);
             } else {
                 codes.remove(tabsFX.getSelectionModel().getSelectedIndex());
                 tabsFX.getTabs().remove(tabsFX.getSelectionModel().getSelectedIndex());
@@ -187,6 +174,22 @@ public class Main extends Application {
         stage.setScene(scene);
 
         stage.show();
+    }
+
+    private void showUnsavedAlert(Alert alert, Code code) {
+        alert.showAndWait().ifPresent(t -> {
+            if (t == ButtonType.YES) {
+                saveOnAction();
+
+                if (!code.tab().getText().endsWith("*")) {
+                    codes.remove(tabsFX.getSelectionModel().getSelectedIndex());
+                    tabsFX.getTabs().remove(tabsFX.getSelectionModel().getSelectedIndex());
+                }
+            } else if (t == ButtonType.NO) {
+                codes.remove(tabsFX.getSelectionModel().getSelectedIndex());
+                tabsFX.getTabs().remove(tabsFX.getSelectionModel().getSelectedIndex());
+            }
+        });
     }
 
 
