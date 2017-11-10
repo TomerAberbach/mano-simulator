@@ -6,7 +6,8 @@ public class Compiler {
     private static final Map<String, Character> MEMORY_REFERENCE_INSTRUCTIONS;
     private static final char INDIRECT_ADDRESSING_OFFSET = 0x8000;
     private static final Map<String, Character> IMPLICIT_REFERENCE_INSTRUCTIONS;
-    private static final char MAX_ADDRESS = 0x0FFF;
+    private static final char ADDRESS_SIZE = 0x0FFF;
+    private static final char WORD_SIZE = 0xFFFF;
     static {
         // Memory Reference
         Map<String, Character> map = new HashMap<>();
@@ -92,7 +93,7 @@ public class Compiler {
 
     public String[] memory() {
         if (instructions.stream().map(Instruction::address).distinct().count() == instructions.size()) {
-            String[] memory = new String[MAX_ADDRESS + 1];
+            String[] memory = new String[ADDRESS_SIZE + 1];
             Arrays.fill(memory, "0000");
 
             for (Instruction instruction : instructions) {
@@ -162,7 +163,7 @@ public class Compiler {
                             Token argument = tokens.poll();
 
                             // Gets the argument as a 12 bit number
-                            int number = get12BitNumber((token.lexeme().equals("HEX") ? "0x" : "") + argument.lexeme());
+                            int number = get12BitNumber((token.lexeme().equals("HEX") ? "0x" : "") + argument.lexeme(), WORD_SIZE);
 
                             // Checks if the argument was a valid address
                             if (number >= 0) {
@@ -242,7 +243,7 @@ public class Compiler {
             errors.add("Missing argument after directive, " + token + ".");
         } else {
             // Gets the ORG's argument
-            int number = get12BitNumber("0x" + tokens.peek().lexeme());
+            int number = get12BitNumber("0x" + tokens.peek().lexeme(), ADDRESS_SIZE);
 
             // Checks if the argument was a valid address
             if (number >= 0) {
@@ -271,12 +272,12 @@ public class Compiler {
         }
     }
 
-    private static int get12BitNumber(String lexeme) {
+    private static int get12BitNumber(String lexeme, char range) {
         try {
             int number = Integer.decode(lexeme);
 
-            // Checks that the number is within the 12 bit range
-            if (number >= 0 && number <= MAX_ADDRESS) {
+            // Checks that the number is within the specified range
+            if (number >= 0 && number <= range) {
                 return number;
             }
         } catch (NumberFormatException ignored) { }
