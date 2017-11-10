@@ -18,38 +18,33 @@ public class Code implements ChangeListener<String> {
     private Tab tab;
 
 
-
-    public Code() {
+    Code() {
         this.file = new File("Untitled");
         saved = "";
-        tab = getTab(file.getName(), this);
+        tab = getTab(file.getName(), "", this);
     }
 
-    public Code(File file) throws FileNotFoundException {
+    Code(File file) throws FileNotFoundException {
         this.file = file;
         saved = getFileText(file);
-        tab = getTab(file.getName(), this);
+        tab = getTab(file.getName(), saved, this);
     }
 
 
-    public File file() {
+    File file() {
         return file;
     }
 
-    public void setFile(File file) {
+    void setFile(File file) {
         this.file = file;
     }
 
-    public String saved() {
-        return saved;
-    }
-
-    public Tab tab() {
+    Tab tab() {
         return tab;
     }
 
 
-    public void save() throws FileNotFoundException {
+    void save() throws FileNotFoundException {
         setFileText(file, ((TextArea)tab.getContent()).getText());
         saved = ((TextArea)tab.getContent()).getText();
         tab.setText(file.getName());

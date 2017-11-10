@@ -15,31 +15,31 @@ public class Instruction {
 
     @Override
     public String toString() {
-        return pad(Integer.toHexString((int)hex), '0', 4).toUpperCase();
+        return pad(Integer.toHexString((int)hex)).toUpperCase();
     }
 
 
-    public char hex() {
+    char hex() {
         return hex;
     }
 
-    public char address() {
+    char address() {
         return address;
     }
 
-    public Token[] tokens() {
+    Token[] tokens() {
         return tokens;
     }
 
-    public void setHex(char hex) {
+    void setHex(char hex) {
         this.hex = hex;
     }
 
-    public static String pad(String text, char c, int size) {
+    private static String pad(String text) {
         StringBuilder builder = new StringBuilder();
 
-        while (builder.length() + text.length() < size) {
-            builder.append(c);
+        while (builder.length() + text.length() < 4) {
+            builder.append('0');
         }
 
         builder.append(text);

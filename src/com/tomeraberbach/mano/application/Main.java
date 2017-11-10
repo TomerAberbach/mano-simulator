@@ -3,14 +3,12 @@ package com.tomeraberbach.mano.application;
 import com.tomeraberbach.mano.assembly.Compiler;
 import javafx.application.Application;
 import javafx.beans.value.ChangeListener;
-import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.text.Font;
-import javafx.scene.text.Text;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 
@@ -27,7 +25,7 @@ public class Main extends Application {
 
     private Stage stage;
     private ArrayList<Code> codes;
-    @FXML private Text errorFX;
+    @FXML private TextArea errorFX;
     @FXML private TabPane tabsFX;
 
 
@@ -37,7 +35,7 @@ public class Main extends Application {
 
 
     @FXML
-    private void assembleOnAction(ActionEvent event) {
+    private void assembleOnAction() {
         errorFX.setText("");
         StringBuilder errorBuilder = new StringBuilder();
         boolean error = false;
@@ -84,14 +82,14 @@ public class Main extends Application {
     }
 
     @FXML
-    private void newOnAction(ActionEvent event) {
+    private void newOnAction() {
         Code code = new Code();
         codes.add(code);
         tabsFX.getTabs().add(code.tab());
     }
 
     @FXML
-    private void openOnAction(ActionEvent event) {
+    private void openOnAction() {
         FileChooser fileChooser = new FileChooser();
         fileChooser.setTitle("Open...");
 
@@ -109,7 +107,7 @@ public class Main extends Application {
     }
 
     @FXML
-    private void saveOnAction(ActionEvent event) {
+    private void saveOnAction() {
         if (tabsFX.getTabs().size() > 0) {
             Code code = codes.get(tabsFX.getSelectionModel().getSelectedIndex());
 
@@ -120,13 +118,13 @@ public class Main extends Application {
                     errorFX.setText(errorFX.getText() + "\nCouldn't save the " + code.file() + ".");
                 }
             } else {
-                saveAsOnAction(event);
+                saveAsOnAction();
             }
         }
     }
 
     @FXML
-    private void saveAsOnAction(ActionEvent event) {
+    private void saveAsOnAction() {
         if (tabsFX.getTabs().size() > 0) {
             Code code = codes.get(tabsFX.getSelectionModel().getSelectedIndex());
 
@@ -148,7 +146,7 @@ public class Main extends Application {
     }
 
     @FXML
-    private void closeOnAction(ActionEvent event) {
+    private void closeOnAction() {
         if (tabsFX.getTabs().size() > 0) {
             Code code = codes.get(tabsFX.getSelectionModel().getSelectedIndex());
 
@@ -157,7 +155,7 @@ public class Main extends Application {
 
                 alert.showAndWait().ifPresent(t -> {
                     if (t == ButtonType.YES) {
-                        saveOnAction(event);
+                        saveOnAction();
 
                         if (!code.tab().getText().endsWith("*")) {
                             codes.remove(tabsFX.getSelectionModel().getSelectedIndex());
@@ -182,7 +180,8 @@ public class Main extends Application {
         Parent root = loader.load();
         ((Main)loader.getController()).stage = stage;
 
-        Scene scene = new Scene(root, 600, 400);
+
+        Scene scene = new Scene(root, 900, 500);
 
         stage.setTitle(TITLE);
         stage.setScene(scene);
@@ -199,8 +198,9 @@ public class Main extends Application {
         return alert;
     }
 
-    static Tab getTab(String title, ChangeListener<String> listener) {
+    static Tab getTab(String title, String string, ChangeListener<String> listener) {
         TextArea text = new TextArea();
+        text.setText(string);
         text.setFont(CODE_FONT);
         text.textProperty().addListener(listener);
 
