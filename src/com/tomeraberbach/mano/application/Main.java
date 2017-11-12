@@ -1,5 +1,11 @@
 package com.tomeraberbach.mano.application;
 
+/* Tomer Aberbach
+ * aberbat1@tcnj.edu
+ * 11/12/2017
+ * This code may be accessed and used by students at The College of New Jersey.
+ */
+
 import com.tomeraberbach.mano.assembly.Compiler;
 import javafx.application.Application;
 import javafx.application.Platform;
@@ -44,10 +50,12 @@ public class Main extends Application {
 
         Compiler[] compilers = new Compiler[tabsFX.getTabs().size()];
 
+        // Loops to compile the code in all of the tabs
         for (int i = 0; i < codes.size(); i++) {
             compilers[i] = new Compiler(((TextArea)codes.get(i).tab().getContent()).getText());
             compilers[i].compile();
 
+            // Prepares any compiler errors for the error log
             if (compilers[i].errors().size() > 0) {
                 error = true;
                 errorBuilder.append(codes.get(i).tab().getText()).append(":\n");
@@ -56,18 +64,23 @@ public class Main extends Application {
             }
         }
 
+        // Checks if any of code documents contained errors
         if (error) {
             errorFX.setText(errorBuilder.toString());
         } else {
+            // Aggregates the compilers into one compiler and gets the RAM memory map
             String[] memory = new Compiler(Arrays.asList(compilers)).memory();
 
+            // Checks if the code documents had address overlap
             if (memory == null) {
                 errorFX.setText("Conflicting memory addresses between files.");
             } else {
+                // Converts the memory map array to a string
                 StringBuilder memoryBuilder = new StringBuilder();
                 Arrays.stream(memory).forEach(s -> memoryBuilder.append(s).append(" "));
 
                 try {
+                    // Opens the memory map dialog
                     FXMLLoader loader = new FXMLLoader(getClass().getResource("memory.fxml"));
                     Parent root = loader.load();
                     ((Memory)loader.getController()).setMemory(memoryBuilder.toString());
@@ -86,6 +99,7 @@ public class Main extends Application {
 
     @FXML
     private void newOnAction() {
+        // Creates a new code document
         Code code = new Code();
         codes.add(code);
         tabsFX.getTabs().add(code.tab());
@@ -93,12 +107,16 @@ public class Main extends Application {
 
     @FXML
     private void openOnAction() {
+        // Opens a dialog to choose a file to open
         FileChooser fileChooser = new FileChooser();
         fileChooser.setTitle("Open...");
 
+        // Gets the file which was chosen
         File file = fileChooser.showOpenDialog(stage);
 
+        // Checks if a file was chosen
         if (file != null) {
+            // Tries to open the file and creates a new code document for it
             try {
                 Code code = new Code(file);
                 codes.add(code);
@@ -111,16 +129,21 @@ public class Main extends Application {
 
     @FXML
     private void saveOnAction() {
+        // Checks if there are any tabs present
         if (tabsFX.getTabs().size() > 0) {
+            // Gets the currently selected tab's code document
             Code code = codes.get(tabsFX.getSelectionModel().getSelectedIndex());
 
+            // Checks if the code document was opened from a file
             if (code.file().exists()) {
+                // Tries to save the code
                 try {
                     code.save();
                 } catch (FileNotFoundException e) {
                     errorFX.setText(errorFX.getText() + "\nCouldn't save the " + code.file() + ".");
                 }
             } else {
+                // Brings up a save as dialog
                 saveAsOnAction();
             }
         }
@@ -128,17 +151,24 @@ public class Main extends Application {
 
     @FXML
     private void saveAsOnAction() {
+        // Checks if there are any tabs present
         if (tabsFX.getTabs().size() > 0) {
+            // Gets the currently selected tab's code document
             Code code = codes.get(tabsFX.getSelectionModel().getSelectedIndex());
 
+            // Brings up a file dialog for choosing a save location
             FileChooser fileChooser = new FileChooser();
             fileChooser.setTitle("Save As...");
 
+            // Gets the new file path
             File file = fileChooser.showSaveDialog(stage);
 
+            // Checks if a new file was chosen
             if (file != null) {
+                // Sets the code document's file
                 code.setFile(file);
 
+                // Saves the code
                 try {
                     code.save();
                 } catch (FileNotFoundException e) {
@@ -150,12 +180,17 @@ public class Main extends Application {
 
     @FXML
     private void closeOnAction() {
+        // Checks if there are any tabs present
         if (tabsFX.getTabs().size() > 0) {
+            // Gets the code in the current tab
             Code code = codes.get(tabsFX.getSelectionModel().getSelectedIndex());
 
+            // Checks if the code has not been saved
             if (code.tab().getText().endsWith("*")) {
+                // Asks the user if they would like to save
                 showUnsavedAlert(getUnsavedAlert(), code);
             } else {
+                // Closes the code document
                 codes.remove(tabsFX.getSelectionModel().getSelectedIndex());
                 tabsFX.getTabs().remove(tabsFX.getSelectionModel().getSelectedIndex());
             }
@@ -165,10 +200,10 @@ public class Main extends Application {
 
     @Override
     public void start(Stage stage) throws IOException {
+        // Loads the main application and starts it
         FXMLLoader loader = new FXMLLoader(getClass().getResource("main.fxml"));
         Parent root = loader.load();
         ((Main)loader.getController()).stage = stage;
-
 
         Scene scene = new Scene(root, 900, 500);
 
@@ -204,6 +239,7 @@ public class Main extends Application {
     }
 
     static Tab getTab(String title, String string, ChangeListener<String> listener) {
+        // Creates a tab with a text area in it
         TextArea text = new TextArea();
         text.setText(string);
         text.setFont(CODE_FONT);

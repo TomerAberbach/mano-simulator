@@ -1,5 +1,11 @@
 package com.tomeraberbach.mano.assembly;
 
+/* Tomer Aberbach
+ * aberbat1@tcnj.edu
+ * 11/12/2017
+ * This code may be accessed and used by students at The College of New Jersey.
+ */
+
 import java.util.*;
 
 public class Compiler {
@@ -77,6 +83,7 @@ public class Compiler {
 
         StringBuilder builder = new StringBuilder();
 
+        // Loops to aggregate the collection of compilers into one compiler
         for (Compiler compiler : compilers) {
             builder.append(compiler.source).append("\n");
             errors.addAll(compiler.errors);
@@ -92,10 +99,13 @@ public class Compiler {
     }
 
     public String[] memory() {
+        // Checks that no instructions have the same address
         if (instructions.stream().map(Instruction::address).distinct().count() == instructions.size()) {
+            // Declares and initializes an array the size of the RAM and fills it with 0s
             String[] memory = new String[ADDRESS_SIZE + 1];
             Arrays.fill(memory, "0000");
 
+            // Loops through the instructions and places them in their proper location in RAM
             for (Instruction instruction : instructions) {
                 memory[instruction.address()] = instruction.toString();
             }
@@ -144,6 +154,7 @@ public class Compiler {
                     break;
 
                 case "END":
+                    // Checks if there are still tokens left
                     if (!tokens.isEmpty()) {
                         errors.add("Encountered directive, " + token + ", before end of code.");
                     }

@@ -1,5 +1,11 @@
 package com.tomeraberbach.mano.application;
 
+/* Tomer Aberbach
+ * aberbat1@tcnj.edu
+ * 11/12/2017
+ * This code may be accessed and used by students at The College of New Jersey.
+ */
+
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.scene.control.Tab;
@@ -19,12 +25,14 @@ public class Code implements ChangeListener<String> {
 
 
     Code() {
+        // Initializes an empty code document
         this.file = new File("Untitled");
         saved = "";
         tab = getTab(file.getName(), "", this);
     }
 
     Code(File file) throws FileNotFoundException {
+        // Initializes a code document from a file
         this.file = file;
         saved = getFileText(file);
         tab = getTab(file.getName(), saved, this);
@@ -45,6 +53,7 @@ public class Code implements ChangeListener<String> {
 
 
     void save() throws FileNotFoundException {
+        // Saves the content in the code editor window into its file
         setFileText(file, ((TextArea)tab.getContent()).getText());
         saved = ((TextArea)tab.getContent()).getText();
         tab.setText(file.getName());
@@ -52,6 +61,7 @@ public class Code implements ChangeListener<String> {
 
     @Override
     public void changed(ObservableValue<? extends String> observableValue, String old, String current) {
+        // Adds an asterisk to the code tab if the code was altered
         tab.setText(file.getName() + (old.equals(current) ? "" : "*"));
     }
 
@@ -60,6 +70,7 @@ public class Code implements ChangeListener<String> {
         Scanner scanner = new Scanner(file);
         StringBuilder string = new StringBuilder();
 
+        // Loops to get all of the text in the given file
         while (scanner.hasNextLine()) {
             string.append(scanner.nextLine()).append("\n");
         }

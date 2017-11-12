@@ -1,5 +1,11 @@
 package com.tomeraberbach.mano.assembly;
 
+/* Tomer Aberbach
+ * aberbat1@tcnj.edu
+ * 11/12/2017
+ * This code may be accessed and used by students at The College of New Jersey.
+ */
+
 public class Token {
     private int line;
     private int position;
