@@ -10,6 +10,7 @@ import com.tomeraberbach.mano.assembly.Compiler;
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.beans.value.ChangeListener;
+import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
@@ -95,6 +96,19 @@ public class Main extends Application {
                 } catch (IOException ignored) { }
             }
         }
+    }
+
+    @FXML
+    private void helpOnAction() {
+        try {
+            Scene scene = new Scene(FXMLLoader.load(getClass().getResource("help.fxml")));
+            Stage stage = new Stage();
+
+            stage.setTitle(TITLE);
+            stage.initModality(Modality.APPLICATION_MODAL);
+            stage.setScene(scene);
+            stage.showAndWait();
+        } catch (IOException ignored) { }
     }
 
     @FXML

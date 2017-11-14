@@ -4,12 +4,14 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 <?import javafx.scene.text.Font?>
-<AnchorPane xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.tomeraberbach.mano.application.Main">
-    <SplitPane dividerPositions="0.5" AnchorPane.bottomAnchor="0.0"
-               AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+<AnchorPane xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="com.tomeraberbach.mano.application.Main">
+    <SplitPane dividerPositions="0.5" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0"
+               AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
         <GridPane>
             <columnConstraints>
-                <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0"/>
+                <ColumnConstraints hgrow="NEVER" maxWidth="-Infinity"/>
+                <ColumnConstraints hgrow="SOMETIMES" maxWidth="1.7976931348623157E308"/>
             </columnConstraints>
             <rowConstraints>
                 <RowConstraints maxHeight="-Infinity" vgrow="SOMETIMES"/>
@@ -19,19 +21,18 @@
             <padding>
                 <Insets bottom="10.0" left="10.0" right="10.0" top="10.0"/>
             </padding>
-            <Label text="Error Log:">
+            <Label text="Error Log:" GridPane.columnSpan="2">
                 <font>
                     <Font size="14.0"/>
                 </font>
             </Label>
-            <AnchorPane GridPane.rowIndex="1">
+            <AnchorPane GridPane.columnSpan="2" GridPane.rowIndex="1">
                 <GridPane.margin>
                     <Insets top="10.0"/>
                 </GridPane.margin>
-                <padding>
-                    <Insets bottom="2.0" left="2.0" right="2.0" top="2.0"/>
-                </padding>
-                <TextArea fx:id="errorFX" editable="false" prefHeight="200.0" prefWidth="200.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+                <TextArea fx:id="errorFX" editable="false" prefHeight="200.0" prefWidth="200.0"
+                          AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0"
+                          AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
                     <GridPane.margin>
                         <Insets/>
                     </GridPane.margin>
@@ -43,6 +44,12 @@
                     <Insets top="10.0"/>
                 </GridPane.margin>
             </Button>
+            <Button mnemonicParsing="false" onAction="#helpOnAction" text="Help" GridPane.columnIndex="1"
+                    GridPane.rowIndex="2">
+                <GridPane.margin>
+                    <Insets left="10.0" top="10.0"/>
+                </GridPane.margin>
+            </Button>
         </GridPane>
         <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="200.0">
             <GridPane AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0"
@@ -51,8 +58,7 @@
                     <ColumnConstraints hgrow="SOMETIMES" maxWidth="-Infinity"/>
                     <ColumnConstraints hgrow="SOMETIMES" maxWidth="-Infinity"/>
                     <ColumnConstraints hgrow="SOMETIMES" maxWidth="-Infinity"/>
-                    <ColumnConstraints hgrow="SOMETIMES" maxWidth="-Infinity" minWidth="10.0"
-                                       prefWidth="100.0"/>
+                    <ColumnConstraints hgrow="SOMETIMES" maxWidth="-Infinity" prefWidth="100.0"/>
                     <ColumnConstraints hgrow="SOMETIMES" maxWidth="1.7976931348623157E308"/>
                 </columnConstraints>
                 <rowConstraints>
@@ -62,8 +68,8 @@
                 <TabPane fx:id="tabsFX" prefHeight="200.0" prefWidth="200.0" tabClosingPolicy="UNAVAILABLE"
                          GridPane.columnSpan="5">
                 </TabPane>
-                <Button mnemonicParsing="false" onAction="#saveOnAction" text="Save" GridPane.columnIndex="2"
-                        GridPane.rowIndex="1">
+                <Button mnemonicParsing="false" onAction="#saveOnAction" text="Save"
+                        GridPane.columnIndex="2" GridPane.rowIndex="1">
                     <GridPane.margin>
                         <Insets bottom="10.0" left="10.0" top="10.0"/>
                     </GridPane.margin>

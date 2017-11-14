@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.text.Text?>
+<?import javafx.scene.text.TextFlow?>
+<AnchorPane maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="-Infinity"
+            minWidth="-Infinity" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="com.tomeraberbach.mano.application.Memory">
+    <TextFlow maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="-Infinity"
+              minWidth="-Infinity" prefHeight="480.0" prefWidth="400.0" AnchorPane.bottomAnchor="0.0"
+              AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+        <padding>
+            <Insets bottom="10.0" left="10.0" right="10.0" top="10.0"/>
+        </padding>
+        <Text strokeType="OUTSIDE" strokeWidth="0.0"
+              text="Help:&#10;&#10;Use the text area in the right pane of the application window to write and edit assembly code. You can create new code documents using the 'New' button, open external files containing code using the 'Open' button, save code documents using the 'Save' and 'Save As...' buttons, and close code documents using the 'Close' button.&#10;&#10;Clicking the 'Assemble' button will compile all of the currently open code documents and list any errors which occurred during compilation in the error log in the text area at the left pane of the application window.&#10;&#10;If no errors occurred the instructions of all the code documents will be converted to hex and placed in a RAM map at their appropriate addresses, which is then displayed in an external dialog. If any instructions occupy the same address an error will be generated in the error log.&#10;&#10;Use the 'Copy to Clipboard' button to copy the RAM map, navigate to your circuit in LogicWorks, click once on your RAM to highlight it, click the Simulation tab, click 'PROM/RAM/PLA Wizard', select the 'Edit selected device' radio button, click 'Next', select the 'Enter hex data manually' radio button, click 'Next', select the contents of your RAM using CTRL+A, paste the previously copied RAM map, and click 'Finish'."/>
+    </TextFlow>
+</AnchorPane>
