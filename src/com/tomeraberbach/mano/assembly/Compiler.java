@@ -8,11 +8,41 @@ package com.tomeraberbach.mano.assembly;
 
 import java.util.*;
 
+/**
+ * Class which compiles assembly code. Makes use of {@link Token} and {@link Instruction}.
+ */
 public class Compiler {
+    /**
+     * Maps memory referencing assembly instruction strings to their respective hex values.
+     * This does not include directives.
+     * Their hex values have zeros for their three least significant hex digits and direct addressing values for their most significant hex digit.
+     * Their hex values are stored as {@link Character} instances because they cannot exceed 16 bits (which is the number of bits in which a character is represented).
+     * @see Compiler#INDIRECT_ADDRESSING_OFFSET for information on indirect addressing.
+     */
     private static final Map<String, Character> MEMORY_REFERENCE_INSTRUCTIONS;
+
+    /**
+     * The amount which must be added to a direct addressing assembly instruction's hex value so that it becomes an indirect addressing assembly instruction.
+     * This is a char because addresses cannot exceed 16 bits (which is the number of bits in which a character is represented).
+     */
     private static final char INDIRECT_ADDRESSING_OFFSET = 0x8000;
+
+    /**
+     * Maps non-memory referencing assembly instruction strings to their respective hex values.
+     * Their hex values are stored as {@link Character} instances because they cannot exceed 16 bits (which is the number of bits in which a character is represented).
+     */
     private static final Map<String, Character> IMPLICIT_REFERENCE_INSTRUCTIONS;
+
+    /**
+     * The highest possible address in RAM.
+     * This is a char because addresses cannot exceed 16 bits (which is the number of bits in which a character is represented).
+     */
     private static final char ADDRESS_SIZE = 0x0FFF;
+
+    /**
+     * The highest possible word value in unsigned.
+     * This is a char because addresses cannot exceed 16 bits (which is the number of bits in which a character is represented).
+     */
     private static final char WORD_SIZE = 0xFFFF;
     static {
         // Memory Reference
@@ -52,17 +82,46 @@ public class Compiler {
     }
 
 
+    /**
+     * Assembly source code to compile.
+     */
     private String source;
 
+    /**
+     * {@link ArrayDeque} of {@link Token} instances acquired from tokenizing {@link Compiler#source}.
+     */
     private ArrayDeque<Token> tokens;
+
+    /**
+     * {@link Map} which maps assembly labels to their respective address values in hex.
+     * Their hex values are stored as {@link Character} instances because they cannot exceed 16 bits (which is the number of bits in which a character is represented).
+     */
     private Map<String, Character> symbolTable;
+
+    /**
+     * {@link ArrayList} of {@link Instruction} instances which were compiled from {@link Compiler#source}.
+     */
     private ArrayList<Instruction> instructions;
+
+    /**
+     * {@link ArrayList} of errors encountered when attempting to compile from {@link Compiler#source}.
+     */
     private ArrayList<String> errors;
 
+    /**
+     * The current address the compiler is viewing.
+     */
     private char address;
+
+    /**
+     * The current {@link Token} the compiler is viewing.
+     */
     private Token token;
 
 
+    /**
+     * @param source {@link String} of assembly code which a call to {@link Compiler#compile()} would compile.
+     */
     public Compiler(String source) {
         this.source = source;
 
@@ -75,6 +134,9 @@ public class Compiler {
         token = null;
     }
 
+    /**
+     * @param compilers {@link Collection} of {@link Compiler} instances to aggregate together for {@link Instruction} collision checking when loading multiple programs into RAM.
+     */
     public Compiler(Collection<Compiler> compilers) {
         tokens = new ArrayDeque<>();
         symbolTable = new HashMap<>();
@@ -94,10 +156,18 @@ public class Compiler {
     }
 
 
+    /**
+     * This will return an empty {@link ArrayList} if {@link Compiler#compile()} was not called.
+     * @return {@link ArrayList} of errors encountered after calling {@link Compiler#compile()}.
+     */
     public ArrayList<String> errors() {
         return errors;
     }
 
+    /**
+     * Each {@link String} will be four characters long and will represent hex assembly instruction.
+     * @return A {@link String} array of length {@link Compiler#ADDRESS_SIZE} + 1 or null if there are {@link Instruction} collisions in memory. See {@link Compiler#Compiler(Collection)} for more information.
+     */
     public String[] memory() {
         // Checks that no instructions have the same address
         if (instructions.stream().map(Instruction::address).distinct().count() == instructions.size()) {
@@ -117,6 +187,10 @@ public class Compiler {
     }
 
 
+    /**
+     * Splits {@link Compiler#source} by line, removes comments, pads commas, and then splits by whitespace.
+     * The resulting {@link String} instances in the final split will be converted to {@link Token} instances and added to {@link Compiler#tokens}.
+     */
     private void lexAndParse() {
         // Gets the lines
         String[] lines = source.split("\n");
@@ -136,6 +210,17 @@ public class Compiler {
         }
     }
 
+    /**
+     * Interprets {@link Token} instances created by {@link Compiler#lexAndParse()}:
+     * <ul>
+     *     <li>Maps instructions to hex code (see {@link Compiler#MEMORY_REFERENCE_INSTRUCTIONS} and {@link Compiler#IMPLICIT_REFERENCE_INSTRUCTIONS}.</li>
+     *     <li>Interprets directives.</li>
+     *     <li>Parses decimal and hexadecimal numbers literals.</li>
+     *     <li>Collects labels in preparation for calling {@link Compiler#replaceLabels(ArrayList)}.</li>
+     * </ul>
+     * {@link Instruction} instances generated will be added to {@link Compiler#instructions}.
+     * All errors are logged as {@link String} instances in {@link Compiler#errors} which is accessible using {@link Compiler#errors()}.
+     */
     private void analyzeAndGenerate() {
         ArrayList<String> labels = new ArrayList<>();
 
@@ -227,16 +312,25 @@ public class Compiler {
         replaceLabels(labels);
     }
 
+    /**
+     * Compiles the assembly code in {@link Compiler#source} by calling {@link Compiler#lexAndParse()} and {@link Compiler#analyzeAndGenerate()}.
+     */
     public void compile() {
         lexAndParse();
         analyzeAndGenerate();
     }
 
+    /**
+     * @return boolean representing if the current {@link Token} ({@link Compiler#token}) is a label.
+     */
     private boolean isLabel() {
         // Checks if the next token is a comma
         return !tokens.isEmpty() && tokens.peek().lexeme().equals(",");
     }
 
+    /**
+     * Treats the current {@link Token} ({@link Compiler#token}) as a label and logs it in {@link Compiler#symbolTable}.
+     */
     private void label() {
         // Adds the label to the symbol table
         symbolTable.put(token.lexeme(), address);
@@ -248,6 +342,9 @@ public class Compiler {
         token = tokens.poll();
     }
 
+    /**
+     * Interprets an ORG directive by parsing its number argument and changing the current address ({@link Compiler#address}).
+     */
     private void org() {
         // Checks if there is no argument after ORG
         if (tokens.isEmpty()) {
@@ -267,6 +364,10 @@ public class Compiler {
         }
     }
 
+    /**
+     * Replaces any labels found after calling {@link Compiler#analyzeAndGenerate()} with their hex values in their respective {@link Instruction} instances in {@link Compiler#instructions} using {@link Compiler#symbolTable}.
+     * @param labels {@link ArrayList} of {@link String} labels to replace using {@link Compiler#symbolTable}.
+     */
     private void replaceLabels(ArrayList<String> labels) {
         // Loops through the instructions to substitute labels for hex
         for (int i = 0; i < instructions.size(); i++) {
@@ -283,6 +384,12 @@ public class Compiler {
         }
     }
 
+    /**
+     *
+     * @param lexeme {@link String} representing a number to parse.
+     * @param range The inclusive upper bound to which the parsed number has to conform.
+     * @return -1 if {@param lexeme} is not a number or not on the interval [0, {@param range}], the integer represented by {@param lexeme} otherwise.
+     */
     private static int get12BitNumber(String lexeme, char range) {
         try {
             int number = Integer.decode(lexeme);

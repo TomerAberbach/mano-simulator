@@ -27,22 +27,56 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 
+/**
+ * JavaFX controller and starting point for the main application window.
+ */
 public class Main extends Application {
+    /**
+     * Title of the application.
+     */
     private static final String TITLE = "Mano Assembler - Tomer Aberbach";
+
+    /**
+     * {@link Font} to use for the assembly code.
+     */
     private static final Font CODE_FONT = new Font("Courier New", 13.0);
 
 
+    /**
+     * Essentially the application window.
+     */
     private Stage stage;
+
+    /**
+     * {@link ArrayList} of currently open {@link Code} documents.
+     */
     private ArrayList<Code> codes;
+
+    /**
+     * Text area in the application window where errors will be logged.
+     */
     @FXML private TextArea errorFX;
+
+    /**
+     * Pane where the {@link Code} documents in {@link Main#codes} will be displayed.
+     */
     @FXML private TabPane tabsFX;
 
 
+    /**
+     * Initializes the application window with an empty {@link ArrayList} of {@link Code} documents.
+     */
     public Main() {
         codes = new ArrayList<>();
     }
 
 
+    /**
+     * Called when the 'Assemble' button is pressed.
+     * Compiles all the assembly code in {@link Main#codes} using {@link Compiler}.
+     * Logs any errors in {@link Main#errorFX}.
+     * If no errors are encountered opens {@link Memory}.
+     */
     @FXML
     private void assembleOnAction() {
         errorFX.setText("");
@@ -98,6 +132,10 @@ public class Main extends Application {
         }
     }
 
+    /**
+     * Called when the 'Help' button is pressed.
+     * Opens a help window.
+     */
     @FXML
     private void helpOnAction() {
         try {
@@ -111,6 +149,10 @@ public class Main extends Application {
         } catch (IOException ignored) { }
     }
 
+    /**
+     * Called when the 'New' button is pressed.
+     * Initializes a new instance of {@link Code} with {@link Code#Code()}, adds it to {@link Main#codes}, and displays it in {@link Main#tabsFX}.
+     */
     @FXML
     private void newOnAction() {
         // Creates a new code document
@@ -119,6 +161,10 @@ public class Main extends Application {
         tabsFX.getTabs().add(code.tab());
     }
 
+    /**
+     * Called when the 'Open' button is pressed.
+     * Creates a prompt to choose a file to open. If a {@link File} was picked initializes a new instance of {@link Code} with {@link Code#Code(File)}.
+     */
     @FXML
     private void openOnAction() {
         // Opens a dialog to choose a file to open
@@ -141,6 +187,12 @@ public class Main extends Application {
         }
     }
 
+    /**
+     * Called when the 'Save' button is pressed.
+     * If {@link Main#tabsFX} contains any tabs it saves the currently selected {@link Code} document.
+     * If the selected {@link Code} document does not have a file it passes off the job to {@link Main#saveAsOnAction()}.
+     * Otherwise it saves the {@link Code} document with {@link Code#save()}.
+     */
     @FXML
     private void saveOnAction() {
         // Checks if there are any tabs present
@@ -163,6 +215,11 @@ public class Main extends Application {
         }
     }
 
+    /**
+     * Called by {@link Main#saveOnAction()} or when the 'Save as...' button is pressed.
+     * If {@link Main#tabsFX} contains any tabs it displays a prompt for choosing where to save the current {@link Code} document.
+     * If a {@link File} is chosen {@link Code#setFile(File)} will be called followed by a call to {@link Code#save()}.
+     */
     @FXML
     private void saveAsOnAction() {
         // Checks if there are any tabs present
@@ -192,6 +249,11 @@ public class Main extends Application {
         }
     }
 
+    /**
+     * Called when the 'Close' button is pressed.
+     * If {@link Main#tabsFX} contains any tabs it closes the currently selected {@link Code} document.
+     * It will prompt the user to save the {@link Code} document if there have been unsaved changes.
+     */
     @FXML
     private void closeOnAction() {
         // Checks if there are any tabs present
@@ -212,6 +274,11 @@ public class Main extends Application {
     }
 
 
+    /**
+     * Used to launch the application.
+     * @param stage Essentially the window to display the application in.
+     * @throws IOException Occurs when the file 'main.fxml' representing the layout of the application could not be accessed.
+     */
     @Override
     public void start(Stage stage) throws IOException {
         // Loads the main application and starts it
@@ -227,6 +294,11 @@ public class Main extends Application {
         stage.show();
     }
 
+    /**
+     * Shows an alert prompting the user to save a {@link Code} document.
+     * @param alert {@link Alert} to display.
+     * @param code The unsaved {@link Code} document.
+     */
     private void showUnsavedAlert(Alert alert, Code code) {
         alert.showAndWait().ifPresent(t -> {
             if (t == ButtonType.YES) {
@@ -243,7 +315,9 @@ public class Main extends Application {
         });
     }
 
-
+    /**
+     * @return {@link Alert} prompting the user to save a modified {@link Code} document.
+     */
     private static Alert getUnsavedAlert() {
         Alert alert = new Alert(Alert.AlertType.NONE);
         alert.setTitle("Unsaved Code");
@@ -252,6 +326,12 @@ public class Main extends Application {
         return alert;
     }
 
+    /**
+     * @param title {@link String} to title the {@link Tab} with.
+     * @param string {@link String} to place in the text area of the {@link Tab}.
+     * @param listener {@link ChangeListener} which will check for changes to {@link Tab}. {@link Code} acts as a {@link ChangeListener}.
+     * @return {@link Tab} titled {@param title}, which inner text {@param string} and listener {@param listener}.
+     */
     static Tab getTab(String title, String string, ChangeListener<String> listener) {
         // Creates a tab with a text area in it
         TextArea text = new TextArea();
@@ -266,6 +346,10 @@ public class Main extends Application {
         return tab;
     }
 
+    /**
+     * Starting point for the application.
+     * @param args Ignore.
+     */
     public static void main(String[] args) {
         launch(args);
     }
