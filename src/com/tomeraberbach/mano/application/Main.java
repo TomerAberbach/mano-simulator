@@ -330,7 +330,7 @@ public class Main extends Application {
      * @param title {@link String} to title the {@link Tab} with.
      * @param string {@link String} to place in the text area of the {@link Tab}.
      * @param listener {@link ChangeListener} which will check for changes to {@link Tab}. {@link Code} acts as a {@link ChangeListener}.
-     * @return {@link Tab} titled {@param title}, which inner text {@param string} and listener {@param listener}.
+     * @return {@link Tab} titled {@code title}, which inner text {@code string} and listener {@code listener}.
      */
     static Tab getTab(String title, String string, ChangeListener<String> listener) {
         // Creates a tab with a text area in it

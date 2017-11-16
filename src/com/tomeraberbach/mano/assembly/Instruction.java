@@ -77,7 +77,7 @@ public class Instruction {
 
     /**
      * @param text {@link String} text to pad with zeros.
-     * @return {@param text} but padded with zeros from the left so that it is four characters long.
+     * @return {@code text} but padded with zeros from the left so that it is four characters long.
      */
     private static String pad(String text) {
         StringBuilder builder = new StringBuilder();

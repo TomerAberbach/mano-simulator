@@ -51,7 +51,7 @@ public class Code implements ChangeListener<String> {
     /**
      * Initializes a code document from a {@link File}.
      * @param file {@link File} to load the code document from.
-     * @throws FileNotFoundException Occurs if {@param file} could not be accessed.
+     * @throws FileNotFoundException Occurs if {@code file} could not be accessed.
      */
     Code(File file) throws FileNotFoundException {
         // Initializes a code document from a file
@@ -111,8 +111,8 @@ public class Code implements ChangeListener<String> {
 
     /**
      * @param file {@link File} to get text from.
-     * @return {@link String} representing text from {@param file}.
-     * @throws FileNotFoundException Occurs if {@param file} could not be accessed.
+     * @return {@link String} representing text from {@code file}.
+     * @throws FileNotFoundException Occurs if {@code file} could not be accessed.
      */
     private static String getFileText(File file) throws FileNotFoundException {
         Scanner scanner = new Scanner(file);
@@ -127,10 +127,10 @@ public class Code implements ChangeListener<String> {
     }
 
     /**
-     * Sets the text of {@param file} to {@param text}.
+     * Sets the text of {@code file} to {@code text}.
      * @param file {@link File} to overwrite.
      * @param text {@link String} to overwrite {@link File} with.
-     * @throws FileNotFoundException Occurs if {@param file} could not be accessed.
+     * @throws FileNotFoundException Occurs if {@code file} could not be accessed.
      */
     private static void setFileText(File file, String text) throws FileNotFoundException {
         PrintWriter writer = new PrintWriter(file);

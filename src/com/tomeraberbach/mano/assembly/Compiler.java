@@ -388,15 +388,15 @@ public class Compiler {
      *
      * @param lexeme {@link String} representing a number to parse.
      * @param range The inclusive upper bound to which the parsed number has to conform.
-     * @return -1 if {@param lexeme} is not a number or not on the interval [0, {@param range}], the integer represented by {@param lexeme} otherwise.
+     * @return -1 if {@code lexeme} is not a number or not on the interval [0, {@code range}], the integer represented by {@code lexeme} otherwise.
      */
     private static int get12BitNumber(String lexeme, char range) {
         try {
             int number = Integer.decode(lexeme);
 
             // Checks that the number is within the specified range
-            if (number >= 0 && number <= range) {
-                return number;
+            if (Math.abs(number) >= 0 && Math.abs(number) <= range) {
+                return number < 0 ? range + 1 + number : number;
             }
         } catch (NumberFormatException ignored) { }
 
