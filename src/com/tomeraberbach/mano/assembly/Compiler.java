@@ -332,8 +332,12 @@ public class Compiler {
      * Treats the current {@link Token} ({@link Compiler#token}) as a label and logs it in {@link Compiler#symbolTable}.
      */
     private void label() {
-        // Adds the label to the symbol table
-        symbolTable.put(token.lexeme(), address);
+        if (symbolTable.containsKey(token.lexeme())) {
+            errors.add("Duplicate label, " + token + ".");
+        } else {
+            // Adds the label to the symbol table
+            symbolTable.put(token.lexeme(), address);
+        }
 
         // Skips the comma
         tokens.poll();
