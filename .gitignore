@@ -1,5 +1,5 @@
 # Created by .ignore support plugin (hsz.mobi)
-mano-assembler.iml
+*.iml
 .idea/
 out/
 META-INF/

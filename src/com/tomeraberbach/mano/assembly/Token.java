@@ -1,22 +1,28 @@
-package com.tomeraberbach.mano.assembly;
-
-/* Tomer Aberbach
+/*
+ * Tomer Aberbach
  * aberbat1@tcnj.edu
- * 11/12/2017
- * This code may be accessed and used by students at The College of New Jersey.
+ * 12/30/2017
+ * Students at The College of New Jersey are granted
+ * unlimited use and access to this application and its code.
  */
 
+package com.tomeraberbach.mano.assembly;
+
 /**
- * Class representing the smallest semantic element in assembly code.
+ * Class representing the smallest semantic element in the assembly code of Mano's computer as detailed in:<br>
+ * Computer System Architecture, 3rd edition<br>
+ * By M. Morris Mano<br>
+ * Published by Prentice-Hall, c 1993<br>
+ * Chapter 5, pp 123-172.
  */
 public class Token {
     /**
-     * Line number which the {@link Token} was parsed from.
+     * Line number from which the {@link Token} was parsed.
      */
     private int line;
 
     /**
-     * Token number in the line which the {@link Token} was parsed from.
+     * Token number in the line from which the {@link Token} was parsed.
      */
     private int position;
 
@@ -27,14 +33,21 @@ public class Token {
 
 
     /**
-     * @param line Line number which the {@link Token} was parsed from.
-     * @param position Token number in the line which the {@link Token} was parsed from.
-     * @param lexeme {@link String} which represented the {@link Token} in source code.
+     * @param line     Line number from which the {@link Token} was parsed.
+     * @param position Token number in the line from which the {@link Token} was parsed.
+     * @param lexeme   {@link String} which represented the {@link Token} in source code.
      */
     Token(int line, int position, String lexeme) {
         this.line = line;
         this.position = position;
         this.lexeme = lexeme;
+    }
+
+    /**
+     * @return {@link Token#lexeme}.
+     */
+    public String lexeme() {
+        return lexeme;
     }
 
 
@@ -44,12 +57,5 @@ public class Token {
     @Override
     public String toString() {
         return "'" + lexeme + "' at line " + line + " token position " + position;
-    }
-
-    /**
-     * @return {@link Token#lexeme}.
-     */
-    String lexeme() {
-        return lexeme;
     }
 }

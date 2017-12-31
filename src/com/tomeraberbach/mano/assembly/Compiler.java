@@ -1,203 +1,113 @@
-package com.tomeraberbach.mano.assembly;
-
-/* Tomer Aberbach
+/*
+ * Tomer Aberbach
  * aberbat1@tcnj.edu
- * 11/12/2017
- * This code may be accessed and used by students at The College of New Jersey.
+ * 12/30/2017
+ * Students at The College of New Jersey are granted
+ * unlimited use and access to this application and its code.
  */
 
-import java.util.*;
+package com.tomeraberbach.mano.assembly;
+
+import com.tomeraberbach.mano.simulation.Computer;
+
+import java.util.ArrayDeque;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
- * Class which compiles assembly code. Makes use of {@link Token} and {@link Instruction}.
+ * Class representing a compiler which compiles assembly code for Mano's computer as detailed in:<br>
+ * Computer System Architecture, 3rd edition<br>
+ * By M. Morris Mano<br>
+ * Published by Prentice-Hall, c 1993<br>
+ * Chapter 5, pp 123-172.
  */
 public class Compiler {
     /**
-     * Maps memory referencing assembly instruction strings to their respective hex values.
-     * This does not include directives.
-     * Their hex values have zeros for their three least significant hex digits and direct addressing values for their most significant hex digit.
-     * Their hex values are stored as {@link Character} instances because they cannot exceed 16 bits (which is the number of bits in which a character is represented).
-     * @see Compiler#INDIRECT_ADDRESSING_OFFSET for information on indirect addressing.
-     */
-    private static final Map<String, Character> MEMORY_REFERENCE_INSTRUCTIONS;
-
-    /**
-     * The amount which must be added to a direct addressing assembly instruction's hex value so that it becomes an indirect addressing assembly instruction.
-     * This is a char because addresses cannot exceed 16 bits (which is the number of bits in which a character is represented).
-     */
-    private static final char INDIRECT_ADDRESSING_OFFSET = 0x8000;
-
-    /**
-     * Maps non-memory referencing assembly instruction strings to their respective hex values.
-     * Their hex values are stored as {@link Character} instances because they cannot exceed 16 bits (which is the number of bits in which a character is represented).
-     */
-    private static final Map<String, Character> IMPLICIT_REFERENCE_INSTRUCTIONS;
-
-    /**
-     * The highest possible address in RAM.
-     * This is a char because addresses cannot exceed 16 bits (which is the number of bits in which a character is represented).
-     */
-    private static final char ADDRESS_SIZE = 0x0FFF;
-
-    /**
-     * The highest possible word value in unsigned.
-     * This is a char because addresses cannot exceed 16 bits (which is the number of bits in which a character is represented).
-     */
-    private static final char WORD_SIZE = 0xFFFF;
-    static {
-        // Memory Reference
-        Map<String, Character> map = new HashMap<>();
-        map.put("AND", (char)0x0000);
-        map.put("ADD", (char)0x1000);
-        map.put("LDA", (char)0x2000);
-        map.put("STA", (char)0x3000);
-        map.put("BUN", (char)0x4000);
-        map.put("BSA", (char)0x5000);
-        map.put("ISZ", (char)0x6000);
-        MEMORY_REFERENCE_INSTRUCTIONS = Collections.unmodifiableMap(map);
-
-        // Register Reference
-        map = new HashMap<>();
-        map.put("CLA", (char)0x7800);
-        map.put("CLE", (char)0x7400);
-        map.put("CMA", (char)0x7200);
-        map.put("CME", (char)0x7100);
-        map.put("CIR", (char)0x7080);
-        map.put("CIL", (char)0x7040);
-        map.put("INC", (char)0x7020);
-        map.put("SPA", (char)0x7010);
-        map.put("SNA", (char)0x7008);
-        map.put("SZA", (char)0x7004);
-        map.put("SZE", (char)0x7002);
-        map.put("HLT", (char)0x7001);
-
-        // Input Output
-        map.put("INP", (char)0xF800);
-        map.put("OUT", (char)0xF400);
-        map.put("SKI", (char)0xF200);
-        map.put("SKO", (char)0xF100);
-        map.put("ION", (char)0xF080);
-        map.put("IOF", (char)0xF040);
-        IMPLICIT_REFERENCE_INSTRUCTIONS = Collections.unmodifiableMap(map);
-    }
-
-
-    /**
-     * Assembly source code to compile.
+     * The assembly source code to compile.
      */
     private String source;
 
     /**
-     * {@link ArrayDeque} of {@link Token} instances acquired from tokenizing {@link Compiler#source}.
+     * The {@link ArrayDeque} of {@link Token} instances acquired from tokenizing this {@link Compiler#source}.
      */
     private ArrayDeque<Token> tokens;
 
     /**
-     * {@link Map} which maps assembly labels to their respective address values in hex.
-     * Their hex values are stored as {@link Character} instances because they cannot exceed 16 bits (which is the number of bits in which a character is represented).
+     * {@link Map} which maps assembly label lexemes to their respective {@link Label} instances.
      */
-    private Map<String, Character> symbolTable;
+    private Map<String, Label> labels;
 
     /**
-     * {@link ArrayList} of {@link Instruction} instances which were compiled from {@link Compiler#source}.
+     * The {@link ArrayList} of {@link Instruction} instances which were compiled from this {@link Compiler#source}.
      */
     private ArrayList<Instruction> instructions;
 
     /**
-     * {@link ArrayList} of errors encountered when attempting to compile from {@link Compiler#source}.
+     * The {@link ArrayList} of errors encountered when attempting to compile this {@link Compiler#source}.
      */
     private ArrayList<String> errors;
 
     /**
-     * The current address the compiler is viewing.
+     * The address where the program in this {@link Compiler#source} starts.
      */
-    private char address;
+    private int start;
 
     /**
-     * The current {@link Token} the compiler is viewing.
+     * The current address this {@link Compiler} is at.
+     */
+    private int address;
+
+    /**
+     * The current {@link Token} this {@link Compiler} has parsed.
      */
     private Token token;
 
 
     /**
-     * @param source {@link String} of assembly code which a call to {@link Compiler#compile()} would compile.
+     * @param source The assembly source code to compile.
      */
-    public Compiler(String source) {
+    private Compiler(String source) {
         this.source = source;
 
         tokens = new ArrayDeque<>();
-        symbolTable = new HashMap<>();
+        labels = new HashMap<>();
         instructions = new ArrayList<>();
         errors = new ArrayList<>();
 
+        start = -1;
         address = 0;
         token = null;
     }
 
     /**
-     * @param compilers {@link Collection} of {@link Compiler} instances to aggregate together for {@link Instruction} collision checking when loading multiple programs into RAM.
+     * @param source The assembly source code to compile.
+     * @return {@link Program} which is the result of compiling this {@code source}.
      */
-    public Compiler(Collection<Compiler> compilers) {
-        tokens = new ArrayDeque<>();
-        symbolTable = new HashMap<>();
-        instructions = new ArrayList<>();
-        errors = new ArrayList<>();
-
-        StringBuilder builder = new StringBuilder();
-
-        // Loops to aggregate the collection of compilers into one compiler
-        for (Compiler compiler : compilers) {
-            builder.append(compiler.source).append("\n");
-            errors.addAll(compiler.errors);
-            instructions.addAll(compiler.instructions);
-        }
-
-        source = builder.toString();
-    }
-
-
-    /**
-     * This will return an empty {@link ArrayList} if {@link Compiler#compile()} was not called.
-     * @return {@link ArrayList} of errors encountered after calling {@link Compiler#compile()}.
-     */
-    public ArrayList<String> errors() {
-        return errors;
+    public static Program compile(String source) {
+        return new Compiler(source).compile();
     }
 
     /**
-     * Each {@link String} will be four characters long and will represent hex assembly instruction.
-     * @return A {@link String} array of length {@link Compiler#ADDRESS_SIZE} + 1 or null if there are {@link Instruction} collisions in memory. See {@link Compiler#Compiler(Collection)} for more information.
+     * @return {@link Program} which is the result of compiling this {@link Compiler#source}.
      */
-    public String[] memory() {
-        // Checks that no instructions have the same address
-        if (instructions.stream().map(Instruction::address).distinct().count() == instructions.size()) {
-            // Declares and initializes an array the size of the RAM and fills it with 0s
-            String[] memory = new String[ADDRESS_SIZE + 1];
-            Arrays.fill(memory, "0000");
-
-            // Loops through the instructions and places them in their proper location in RAM
-            for (Instruction instruction : instructions) {
-                memory[instruction.address()] = instruction.toString();
-            }
-
-            return memory;
-        } else {
-            return null;
-        }
+    private Program compile() {
+        tokenize();
+        generate();
+        return new Program(start, instructions, new ArrayList<>(labels.values()), errors);
     }
 
-
     /**
-     * Splits {@link Compiler#source} by line, removes comments, pads commas, and then splits by whitespace.
-     * The resulting {@link String} instances in the final split will be converted to {@link Token} instances and added to {@link Compiler#tokens}.
+     * Splits this {@link Compiler#source} by line, removes comments, pads commas, and then splits by whitespace.
+     * The resulting {@link String} instances in the final split will be converted to {@link Token} instances and added to this {@link Compiler#tokens}.
      */
-    private void lexAndParse() {
+    private void tokenize() {
         // Gets the lines
         String[] lines = source.split("\n");
 
         // Loops through the lines of the source code
         for (int line = 0; line < lines.length; line++) {
-            // Splits the line into lexemes at spaces and word boundaries
+            // Splits the line into lexemes at spaces and value boundaries
             String[] lexemes = lines[line].replaceAll("/.*$", "").replaceAll(",", " , ").split("\\s+");
 
             // Loops through the lexemes to initialize tokens
@@ -211,17 +121,17 @@ public class Compiler {
     }
 
     /**
-     * Interprets {@link Token} instances created by {@link Compiler#lexAndParse()}:
+     * Interprets {@link Token} instances created by {@link Compiler#tokenize()}:
      * <ul>
-     *     <li>Maps instructions to hex code (see {@link Compiler#MEMORY_REFERENCE_INSTRUCTIONS} and {@link Compiler#IMPLICIT_REFERENCE_INSTRUCTIONS}.</li>
-     *     <li>Interprets directives.</li>
-     *     <li>Parses decimal and hexadecimal numbers literals.</li>
-     *     <li>Collects labels in preparation for calling {@link Compiler#replaceLabels(ArrayList)}.</li>
+     * <li>Maps instructions to their respective codes (see {@link Instruction#MEMORY_REFERENCE_INSTRUCTIONS} and {@link Instruction#IMPLICIT_REFERENCE_INSTRUCTIONS}.</li>
+     * <li>Interprets directives.</li>
+     * <li>Parses decimal and hexadecimal numbers literals.</li>
+     * <li>Collects labels in preparation for calling {@link Compiler#replaceLabels(ArrayList)}.</li>
      * </ul>
      * {@link Instruction} instances generated will be added to {@link Compiler#instructions}.
-     * All errors are logged as {@link String} instances in {@link Compiler#errors} which is accessible using {@link Compiler#errors()}.
+     * All errors are logged as {@link String} instances in {@link Compiler#errors}.
      */
-    private void analyzeAndGenerate() {
+    private void generate() {
         ArrayList<String> labels = new ArrayList<>();
 
         label:
@@ -235,7 +145,16 @@ public class Compiler {
 
             switch (token.lexeme()) {
                 case "ORG":
-                    org();
+                    org(false);
+                    break;
+
+                case "START":
+                    org(true);
+                    if (start < 0) {
+                        start = address;
+                    } else {
+                        errors.add("Encountered directive, " + token + ", twice.");
+                    }
                     break;
 
                 case "END":
@@ -259,17 +178,17 @@ public class Compiler {
                             Token argument = tokens.poll();
 
                             // Gets the argument as a 12 bit number
-                            int number = get12BitNumber((token.lexeme().equals("HEX") ? "0x" : "") + argument.lexeme(), WORD_SIZE);
+                            int number = get12BitNumber((token.lexeme().equals("HEX") ? "0x" : "") + argument.lexeme(), Computer.maxValue(Computer.VALUE_SIZE));
 
                             // Checks if the argument was a valid address
                             if (number >= 0) {
                                 // Adds the *instruction*
-                                instructions.add(new Instruction(address, (char)number, token, argument));
+                                instructions.add(new Instruction(address, number, token, argument));
                             } else {
                                 errors.add("Invalid address, " + argument + ".");
                             }
                         }
-                    } else if (MEMORY_REFERENCE_INSTRUCTIONS.containsKey(token.lexeme())) {
+                    } else if (Instruction.MEMORY_REFERENCE_INSTRUCTIONS.containsKey(token.lexeme())) {
                         // Checks if there is no argument following the memory reference instruction
                         if (tokens.isEmpty()) {
                             errors.add("Missing argument after memory address instruction, " + token + ".");
@@ -277,27 +196,22 @@ public class Compiler {
                             // Gets the argument
                             Token argument = tokens.poll();
 
-                            // Initializes an instruction
-                            Instruction instruction = new Instruction(address, MEMORY_REFERENCE_INSTRUCTIONS.get(token.lexeme()), token, argument);
+                            Instruction instruction;
+
+                            // Checks if indirect addressing is being used
+                            instruction = !tokens.isEmpty() && tokens.peek().lexeme().equals("I") ?
+                                new Instruction(address, Instruction.MEMORY_REFERENCE_INSTRUCTIONS.get(token.lexeme()), token, argument, tokens.poll()).indirect() :
+                                new Instruction(address, Instruction.MEMORY_REFERENCE_INSTRUCTIONS.get(token.lexeme()), token, argument);
 
                             // Saves the label argument to resolve later once the symbol table is full
                             labels.set(labels.size() - 1, argument.lexeme());
 
-                            // Checks if indirect addressing is being used
-                            if (!tokens.isEmpty() && tokens.peek().lexeme().equals("I")) {
-                                // Skips the I token
-                                tokens.poll();
-
-                                // Offsets the hex
-                                instruction.setHex((char)(instruction.hex() + INDIRECT_ADDRESSING_OFFSET));
-                            }
-
                             instructions.add(instruction);
                         }
-                    } else if (IMPLICIT_REFERENCE_INSTRUCTIONS.containsKey(token.lexeme())) {
-                        instructions.add(new Instruction(address, IMPLICIT_REFERENCE_INSTRUCTIONS.get(token.lexeme()), token));
+                    } else if (Instruction.IMPLICIT_REFERENCE_INSTRUCTIONS.containsKey(token.lexeme())) {
+                        instructions.add(new Instruction(address, Instruction.IMPLICIT_REFERENCE_INSTRUCTIONS.get(token.lexeme()), token));
                     } else {
-                        errors.add("Invalid instruction token, " + token + (instructions.size() > 0 ? " or potentially unneeded argument after " + instructions.get(instructions.size() - 1).tokens()[0] +"." : "") + ".");
+                        errors.add("Invalid instruction token, " + token + (instructions.size() > 0 ? " or potentially unneeded argument after " + instructions.get(instructions.size() - 1).tokens()[0] : "") + ".");
                     }
 
                     // Increments the address and checks that it did not go outside the bounds of the RAM
@@ -310,18 +224,14 @@ public class Compiler {
         }
 
         replaceLabels(labels);
+
+        if (start < 0) {
+            start = instructions.size() > 0 ? instructions.get(0).address() : 0;
+        }
     }
 
     /**
-     * Compiles the assembly code in {@link Compiler#source} by calling {@link Compiler#lexAndParse()} and {@link Compiler#analyzeAndGenerate()}.
-     */
-    public void compile() {
-        lexAndParse();
-        analyzeAndGenerate();
-    }
-
-    /**
-     * @return boolean representing if the current {@link Token} ({@link Compiler#token}) is a label.
+     * @return boolean representing if the current {@link Token} ({@link Compiler#token}) is a {@link Label}.
      */
     private boolean isLabel() {
         // Checks if the next token is a comma
@@ -329,14 +239,14 @@ public class Compiler {
     }
 
     /**
-     * Treats the current {@link Token} ({@link Compiler#token}) as a label and logs it in {@link Compiler#symbolTable}.
+     * Treats the current {@link Token} ({@link Compiler#token}) as a {@link Label} and logs it in {@link Compiler#labels}.
      */
     private void label() {
-        if (symbolTable.containsKey(token.lexeme())) {
+        if (labels.containsKey(token.lexeme())) {
             errors.add("Duplicate label, " + token + ".");
         } else {
             // Adds the label to the symbol table
-            symbolTable.put(token.lexeme(), address);
+            labels.put(token.lexeme(), new Label(token, address));
         }
 
         // Skips the comma
@@ -349,52 +259,31 @@ public class Compiler {
     /**
      * Interprets an ORG directive by parsing its number argument and changing the current address ({@link Compiler#address}).
      */
-    private void org() {
+    private void org(boolean start) {
         // Checks if there is no argument after ORG
         if (tokens.isEmpty()) {
             errors.add("Missing argument after directive, " + token + ".");
         } else {
             // Gets the ORG's argument
-            int number = get12BitNumber("0x" + tokens.peek().lexeme(), ADDRESS_SIZE);
+            int number = get12BitNumber("0x" + tokens.peek().lexeme(), Computer.maxValue(Computer.ADDRESS_SIZE));
 
             // Checks if the argument was a valid address
             if (number >= 0) {
                 // Sets the current address and skips the number
-                address = (char)number;
+                address = number;
                 tokens.poll();
             } else {
-                errors.add("Invalid address, ORG " + tokens.peek() + ".");
+                errors.add("Invalid address, " + (start ? "START" : "ORG") + " " + tokens.peek() + ".");
             }
         }
     }
 
     /**
-     * Replaces any labels found after calling {@link Compiler#analyzeAndGenerate()} with their hex values in their respective {@link Instruction} instances in {@link Compiler#instructions} using {@link Compiler#symbolTable}.
-     * @param labels {@link ArrayList} of {@link String} labels to replace using {@link Compiler#symbolTable}.
-     */
-    private void replaceLabels(ArrayList<String> labels) {
-        // Loops through the instructions to substitute labels for hex
-        for (int i = 0; i < instructions.size(); i++) {
-            // Checks if there was a label argument for the current instruction
-            if (labels.get(i) != null) {
-                // Checks if the label was ever defined
-                if (symbolTable.containsKey(labels.get(i))) {
-                    // Adds the address of the label to the instruction hex
-                    instructions.get(i).setHex((char)(instructions.get(i).hex() + symbolTable.get(labels.get(i))));
-                } else {
-                    errors.add("Unrecognized label name, " + instructions.get(i).tokens()[1] + " or potentially missing argument after " + instructions.get(i).tokens()[0] + ".");
-                }
-            }
-        }
-    }
-
-    /**
-     *
      * @param lexeme {@link String} representing a number to parse.
-     * @param range The inclusive upper bound to which the parsed number has to conform.
+     * @param range  The inclusive upper bound to which the parsed number has to conform.
      * @return -1 if {@code lexeme} is not a number or not on the interval [0, {@code range}], the integer represented by {@code lexeme} otherwise.
      */
-    private static int get12BitNumber(String lexeme, char range) {
+    private static int get12BitNumber(String lexeme, int range) {
         try {
             int number = Integer.decode(lexeme);
 
@@ -402,8 +291,30 @@ public class Compiler {
             if (Math.abs(number) >= 0 && Math.abs(number) <= range) {
                 return number < 0 ? range + 1 + number : number;
             }
-        } catch (NumberFormatException ignored) { }
+        } catch (NumberFormatException ignored) {
+        }
 
         return -1;
+    }
+
+    /**
+     * Replaces any labels found after calling {@link Compiler#generate()} with their hex values in their respective {@link Instruction} instances in {@link Compiler#instructions} using {@link Compiler#labels}.
+     *
+     * @param labels {@link ArrayList} of {@link String} labels to replace using {@link Compiler#labels}.
+     */
+    private void replaceLabels(ArrayList<String> labels) {
+        // Loops through the instructions to substitute labels for hex
+        for (int i = 0; i < instructions.size(); i++) {
+            // Checks if there was a label argument for the current instruction
+            if (labels.get(i) != null) {
+                // Checks if the label was ever defined
+                if (this.labels.containsKey(labels.get(i))) {
+                    // Adds the address of the label to the instruction hex
+                    instructions.set(i, instructions.get(i).argument(this.labels.get(labels.get(i))));
+                } else {
+                    errors.add("Unrecognized label name, " + instructions.get(i).tokens()[1] + " or potentially missing argument after " + instructions.get(i).tokens()[0] + ".");
+                }
+            }
+        }
     }
 }

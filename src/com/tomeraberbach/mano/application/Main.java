@@ -1,31 +1,38 @@
-package com.tomeraberbach.mano.application;
-
-/* Tomer Aberbach
+/*
+ * Tomer Aberbach
  * aberbat1@tcnj.edu
- * 11/12/2017
- * This code may be accessed and used by students at The College of New Jersey.
+ * 12/30/2017
+ * Students at The College of New Jersey are granted
+ * unlimited use and access to this application and its code.
  */
 
+package com.tomeraberbach.mano.application;
+
 import com.tomeraberbach.mano.assembly.Compiler;
+import com.tomeraberbach.mano.assembly.Program;
+import com.tomeraberbach.mano.simulation.Computer;
+import com.tomeraberbach.mano.simulation.Memory;
+import com.tomeraberbach.mano.simulation.Microoperation;
+import com.tomeraberbach.mano.simulation.RAM;
 import javafx.application.Application;
 import javafx.application.Platform;
-import javafx.beans.value.ChangeListener;
-import javafx.event.ActionEvent;
+import javafx.concurrent.Task;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
-import javafx.scene.text.Font;
+import javafx.scene.input.Clipboard;
+import javafx.scene.input.ClipboardContent;
+import javafx.scene.layout.GridPane;
 import javafx.stage.FileChooser;
-import javafx.stage.Modality;
 import javafx.stage.Stage;
+import javafx.util.StringConverter;
 
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
 
 /**
  * JavaFX controller and starting point for the main application window.
@@ -34,33 +41,134 @@ public class Main extends Application {
     /**
      * Title of the application.
      */
-    private static final String TITLE = "Mano Assembler - Tomer Aberbach";
+    private static final String TITLE = "Mano Simulator - Tomer Aberbach";
 
     /**
-     * {@link Font} to use for the assembly code.
+     * Text displayed in the 'About' dialog.
      */
-    private static final Font CODE_FONT = new Font("Courier New", 13.0);
-
-
-    /**
-     * Essentially the application window.
-     */
-    private Stage stage;
-
+    private static final String ABOUT = "Tomer Aberbach\n" +
+        "aberbat1@tcnj.edu\n" +
+        "12/30/2017\n" +
+        "Students at The College of New Jersey are granted\n" +
+        "unlimited use and access to this application and\n" +
+        "its code.";
     /**
      * {@link ArrayList} of currently open {@link Code} documents.
      */
-    private ArrayList<Code> codes;
-
+    private final ArrayList<Code> codes;
     /**
-     * Text area in the application window where errors will be logged.
+     * {@link Computer} used for running simulations.
      */
-    @FXML private TextArea errorFX;
-
+    private final Computer computer;
     /**
-     * Pane where the {@link Code} documents in {@link Main#codes} will be displayed.
+     * {@link TabPane} where the {@link Code} documents in this {@link Main#codes} will be displayed.
+     */
+    @FXML private TabPane codesFX;
+    /**
+     * {@link TabPane} where instructions, the console, and the simulation are shown.
      */
     @FXML private TabPane tabsFX;
+    /**
+     * {@link TextArea} in the application window where messages will be logged.
+     */
+    @FXML private TextArea consoleFX;
+    /**
+     * {@link TextField} where the value of the sequence counter will be displayed.
+     */
+    @FXML private TextField scFX;
+    /**
+     * {@link TextField} where the value of the program counter will be displayed.
+     */
+    @FXML private TextField pcFX;
+    /**
+     * {@link TextField} where the value of the address register will be displayed.
+     */
+    @FXML private TextField arFX;
+    /**
+     * {@link TextField} where the value of the instruction register will be displayed.
+     */
+    @FXML private TextField irFX;
+    /**
+     * {@link TextField} where the value of the data register will be displayed.
+     */
+    @FXML private TextField drFX;
+    /**
+     * {@link TextField} where the value of the accumulator will be displayed.
+     */
+    @FXML private TextField acFX;
+    /**
+     * {@link TextField} where the value of the temporary register will be displayed.
+     */
+    @FXML private TextField trFX;
+    /**
+     * {@link TextField} where the value of the input register will be displayed.
+     */
+    @FXML private TextField inprFX;
+    /**
+     * {@link TextField} where the value of the output register will be displayed.
+     */
+    @FXML private TextField outrFX;
+    /**
+     * {@link TextField} where the value of the indirect addressing flip-flop will be displayed.
+     */
+    @FXML private TextField iFX;
+    /**
+     * {@link TextField} where the value of the s flip-flop will be displayed.
+     */
+    @FXML private TextField sFX;
+    /**
+     * {@link TextField} where the value of the carry bit flip-flop will be displayed.
+     */
+    @FXML private TextField eFX;
+    /**
+     * {@link TextField} where the value of the interrupt flip-flop will be displayed.
+     */
+    @FXML private TextField rFX;
+    /**
+     * {@link TextField} where the value of the interrupt enable flip-flop will be displayed.
+     */
+    @FXML private TextField ienFX;
+    /**
+     * {@link TextField} where the value of the input flag flip-flop will be displayed.
+     */
+    @FXML private TextField fgiFX;
+    /**
+     * {@link TextField} where the value of the output flag flip-flop will be displayed.
+     */
+    @FXML private TextField fgoFX;
+    /**
+     * {@link TextField} where the user's input will be displayed.
+     */
+    @FXML private TextField inputFX;
+    /**
+     * {@link ToggleButton} for running and pausing the simulation.
+     */
+    @FXML private ToggleButton runFX;
+    /**
+     * {@link Slider} for adjusting the speed of the simulation.
+     */
+    @FXML private Slider speedFX;
+    /**
+     * {@link TextField} where the currently executing microoperation will be displayed.
+     */
+    @FXML private TextField microoperationFX;
+    /**
+     * {@link TableView} where the current state of {@link RAM} will be displayed.
+     */
+    @FXML private TableView<Memory> ramFX;
+    /**
+     * The contents of the application window.
+     */
+    private Stage stage;
+    /**
+     * The most recently compiled program.
+     */
+    private Program program;
+
+    /**
+     * The {@link Task} for running the simulation.
+     */
+    private Task<Void> task;
 
 
     /**
@@ -68,101 +176,33 @@ public class Main extends Application {
      */
     public Main() {
         codes = new ArrayList<>();
-    }
-
-
-    /**
-     * Called when the 'Assemble' button is pressed.
-     * Compiles all the assembly code in {@link Main#codes} using {@link Compiler}.
-     * Logs any errors in {@link Main#errorFX}.
-     * If no errors are encountered opens {@link Memory}.
-     */
-    @FXML
-    private void assembleOnAction() {
-        errorFX.setText("");
-        StringBuilder errorBuilder = new StringBuilder();
-        boolean error = false;
-
-        Compiler[] compilers = new Compiler[tabsFX.getTabs().size()];
-
-        // Loops to compile the code in all of the tabs
-        for (int i = 0; i < codes.size(); i++) {
-            compilers[i] = new Compiler(((TextArea)codes.get(i).tab().getContent()).getText());
-            compilers[i].compile();
-
-            // Prepares any compiler errors for the error log
-            if (compilers[i].errors().size() > 0) {
-                error = true;
-                errorBuilder.append(codes.get(i).tab().getText()).append(":\n");
-                compilers[i].errors().forEach(s -> errorBuilder.append(s).append("\n"));
-                errorBuilder.append("\n");
-            }
-        }
-
-        // Checks if any of code documents contained errors
-        if (error) {
-            errorFX.setText(errorBuilder.toString());
-        } else {
-            // Aggregates the compilers into one compiler and gets the RAM memory map
-            String[] memory = new Compiler(Arrays.asList(compilers)).memory();
-
-            // Checks if the code documents had address overlap
-            if (memory == null) {
-                errorFX.setText("Conflicting memory addresses between files.");
-            } else {
-                // Converts the memory map array to a string
-                StringBuilder memoryBuilder = new StringBuilder();
-                Arrays.stream(memory).forEach(s -> memoryBuilder.append(s).append(" "));
-
-                try {
-                    // Opens the memory map dialog
-                    FXMLLoader loader = new FXMLLoader(getClass().getResource("memory.fxml"));
-                    Parent root = loader.load();
-                    ((Memory)loader.getController()).setMemory(memoryBuilder.toString());
-
-                    Scene scene = new Scene(root, 200, 200);
-                    Stage stage = new Stage();
-
-                    stage.setTitle(TITLE);
-                    stage.initModality(Modality.APPLICATION_MODAL);
-                    stage.setScene(scene);
-                    stage.showAndWait();
-                } catch (IOException ignored) { }
-            }
-        }
+        computer = new Computer();
+        program = new Program(0, new ArrayList<>(), new ArrayList<>(), new ArrayList<>());
     }
 
     /**
-     * Called when the 'Help' button is pressed.
-     * Opens a help window.
+     * Starting point for the application.
+     *
+     * @param args Ignored.
      */
-    @FXML
-    private void helpOnAction() {
-        try {
-            Scene scene = new Scene(FXMLLoader.load(getClass().getResource("help.fxml")));
-            Stage stage = new Stage();
-
-            stage.setTitle(TITLE);
-            stage.initModality(Modality.APPLICATION_MODAL);
-            stage.setScene(scene);
-            stage.showAndWait();
-        } catch (IOException ignored) { }
+    public static void main(String[] args) {
+        launch(args);
     }
 
     /**
      * Called when the 'New' button is pressed.
-     * Initializes a new instance of {@link Code} with {@link Code#Code()}, adds it to {@link Main#codes}, and displays it in {@link Main#tabsFX}.
+     * Initializes a new instance of {@link Code} with {@link Code#Code()}, adds it to {@link Main#codes}, and displays it in {@link Main#codesFX}.
      */
     @FXML
     private void newOnAction() {
         // Creates a new code document
         Code code = new Code();
         codes.add(code);
-        tabsFX.getTabs().add(code.tab());
+        codesFX.getTabs().add(code.tab());
     }
 
     /**
-     * Called when the 'Open' button is pressed.
+     * Called when the 'Open...' button is pressed.
      * Creates a prompt to choose a file to open. If a {@link File} was picked initializes a new instance of {@link Code} with {@link Code#Code(File)}.
      */
     @FXML
@@ -180,102 +220,299 @@ public class Main extends Application {
             try {
                 Code code = new Code(file);
                 codes.add(code);
-                tabsFX.getTabs().add(code.tab());
+                codesFX.getTabs().add(code.tab());
             } catch (FileNotFoundException e) {
-                errorFX.setText("Couldn't open " + file + ".");
-            }
-        }
-    }
-
-    /**
-     * Called when the 'Save' button is pressed.
-     * If {@link Main#tabsFX} contains any tabs it saves the currently selected {@link Code} document.
-     * If the selected {@link Code} document does not have a file it passes off the job to {@link Main#saveAsOnAction()}.
-     * Otherwise it saves the {@link Code} document with {@link Code#save()}.
-     */
-    @FXML
-    private void saveOnAction() {
-        // Checks if there are any tabs present
-        if (tabsFX.getTabs().size() > 0) {
-            // Gets the currently selected tab's code document
-            Code code = codes.get(tabsFX.getSelectionModel().getSelectedIndex());
-
-            // Checks if the code document was opened from a file
-            if (code.file().exists()) {
-                // Tries to save the code
-                try {
-                    code.save();
-                } catch (FileNotFoundException e) {
-                    errorFX.setText(errorFX.getText() + "\nCouldn't save the " + code.file() + ".");
-                }
-            } else {
-                // Brings up a save as dialog
-                saveAsOnAction();
-            }
-        }
-    }
-
-    /**
-     * Called by {@link Main#saveOnAction()} or when the 'Save as...' button is pressed.
-     * If {@link Main#tabsFX} contains any tabs it displays a prompt for choosing where to save the current {@link Code} document.
-     * If a {@link File} is chosen {@link Code#setFile(File)} will be called followed by a call to {@link Code#save()}.
-     */
-    @FXML
-    private void saveAsOnAction() {
-        // Checks if there are any tabs present
-        if (tabsFX.getTabs().size() > 0) {
-            // Gets the currently selected tab's code document
-            Code code = codes.get(tabsFX.getSelectionModel().getSelectedIndex());
-
-            // Brings up a file dialog for choosing a save location
-            FileChooser fileChooser = new FileChooser();
-            fileChooser.setTitle("Save As...");
-
-            // Gets the new file path
-            File file = fileChooser.showSaveDialog(stage);
-
-            // Checks if a new file was chosen
-            if (file != null) {
-                // Sets the code document's file
-                code.setFile(file);
-
-                // Saves the code
-                try {
-                    code.save();
-                } catch (FileNotFoundException e) {
-                    errorFX.setText("Couldn't save " + file + ".");
-                }
+                consoleFX.setText("Couldn't open " + file + ".");
             }
         }
     }
 
     /**
      * Called when the 'Close' button is pressed.
-     * If {@link Main#tabsFX} contains any tabs it closes the currently selected {@link Code} document.
+     * If {@link Main#codesFX} contains any tabs it closes the currently selected {@link Code} document.
      * It will prompt the user to save the {@link Code} document if there have been unsaved changes.
      */
     @FXML
     private void closeOnAction() {
         // Checks if there are any tabs present
-        if (tabsFX.getTabs().size() > 0) {
+        if (codesFX.getTabs().size() > 0) {
             // Gets the code in the current tab
-            Code code = codes.get(tabsFX.getSelectionModel().getSelectedIndex());
+            Code code = codes.get(codesFX.getSelectionModel().getSelectedIndex());
 
-            // Checks if the code has not been saved
-            if (code.tab().getText().endsWith("*")) {
-                // Asks the user if they would like to save
-                showUnsavedAlert(getUnsavedAlert(), code);
-            } else {
+            if (code.close(stage)) {
                 // Closes the code document
-                codes.remove(tabsFX.getSelectionModel().getSelectedIndex());
-                tabsFX.getTabs().remove(tabsFX.getSelectionModel().getSelectedIndex());
+                codes.remove(codesFX.getSelectionModel().getSelectedIndex());
+                codesFX.getTabs().remove(codesFX.getSelectionModel().getSelectedIndex());
             }
         }
     }
 
+    /**
+     * Called when the 'Save' button is pressed.
+     * If {@link Main#codesFX} contains any tabs it saves the currently selected {@link Code} document.
+     * If the selected {@link Code} document does not have a file it passes off the job to {@link Main#saveAsOnAction()}.
+     * Otherwise it saves the {@link Code} document with {@link Code#save(Stage)}.
+     */
+    @FXML
+    private void saveOnAction() {
+        // Checks if there are any tabs present
+        if (codesFX.getTabs().size() > 0) {
+            Code code = codes.get(codesFX.getSelectionModel().getSelectedIndex());
+            if (!code.save(stage)) {
+                consoleFX.setText(consoleFX.getText() + "\nCouldn't save the " + code.file() + ".");
+            }
+        }
+    }
+
+    /**
+     * Called when the 'Save All' button is pressed.
+     * If {@link Main#codesFX} contains any tabs it saves all of the {@link Code} documents.
+     * Otherwise it saves the {@link Code} document with {@link Code#save(Stage)}.
+     */
+    @FXML
+    public void saveAllOnAction() {
+        for (Code code : codes) {
+            if (!code.save(stage)) {
+                consoleFX.setText(consoleFX.getText() + "\nCouldn't save the " + code.file() + ".");
+            }
+        }
+    }
+
+    /**
+     * Called when the 'Save as...' button is pressed.
+     * If {@link Main#codesFX} contains any tabs it displays a prompt for choosing where to save the current {@link Code} document.
+     * If a {@link File} is chosen will be called followed by a call to {@link Code#saveAs(Stage)}.
+     */
+    @FXML
+    private void saveAsOnAction() {
+        // Checks if there are any tabs present
+        if (codesFX.getTabs().size() > 0) {
+            Code code = codes.get(codesFX.getSelectionModel().getSelectedIndex());
+            if (!code.saveAs(stage)) {
+                consoleFX.setText(consoleFX.getText() + "\nCouldn't save the " + code.file() + ".");
+            }
+        }
+    }
+
+    /**
+     * Called when the 'Assemble' button is pressed.
+     * Compiles the currently selected tab's assembly code in {@link Main#codes} using {@link Compiler}.
+     * Logs any errors in {@link Main#consoleFX}.
+     */
+    @FXML
+    private void assembleOnAction() {
+        if (codesFX.getTabs().size() > 0) {
+            resetOnAction();
+
+            StringBuilder builder = new StringBuilder();
+
+            Tab tab = codes.get(codesFX.getSelectionModel().getSelectedIndex()).tab();
+            Program program = Compiler.compile(((TextArea)tab.getContent()).getText());
+
+            if (program.errors().size() > 0) {
+                builder.append(tab.getText()).append(":\n");
+                program.errors().forEach(s -> builder.append(s).append("\n"));
+            }
+
+            consoleFX.setText(builder.toString());
+            updateSimulation(program);
+        }
+    }
+
+    /**
+     * Called when the 'Reset' button is pressed.
+     */
+    @FXML
+    private void resetOnAction() {
+        if (task != null && task.isRunning()) {
+            task.cancel();
+        }
+
+        runFX.setSelected(false);
+        microoperationFX.setText("");
+        computer.load(program);
+        ramFX.refresh();
+    }
+
+    /**
+     * @param program {@link Program} to load into the {@link Computer} simulation.
+     */
+    private void updateSimulation(Program program) {
+        if (program.errors().size() > 0) {
+            tabsFX.getSelectionModel().select(1);
+        } else {
+            this.program = program;
+            computer.load(program);
+            ramFX.refresh();
+            tabsFX.getSelectionModel().select(2);
+            new Alert(Alert.AlertType.INFORMATION, "Compilation Successful.").showAndWait();
+        }
+    }
+
+    /**
+     * Called when the 'Assemble All' button is pressed.
+     * Compiles all the assembly code in {@link Main#codes} using {@link Compiler}.
+     * Logs any errors in {@link Main#consoleFX}.
+     */
+    @FXML
+    private void assembleAllOnAction() {
+        if (codesFX.getTabs().size() > 0) {
+            resetOnAction();
+            StringBuilder builder = new StringBuilder();
+
+            Program[] programs = new Program[codesFX.getTabs().size()];
+
+            for (int i = 0; i < codes.size(); i++) {
+                programs[i] = Compiler.compile(((TextArea)codes.get(i).tab().getContent()).getText());
+
+                if (programs[i].errors().size() > 0) {
+                    builder.append(codes.get(i).tab().getText()).append(":\n");
+                    programs[i].errors().forEach(s -> builder.append(s).append("\n"));
+                }
+            }
+
+            Program program = Program.union(programs[0].start(), programs);
+
+            if (program.conflicts()) {
+                builder.append("Conflicting memory addresses between files.\n");
+            }
+
+            consoleFX.setText(builder.toString());
+            updateSimulation(program);
+        }
+    }
+
+    /**
+     * Called when the 'About Mano Simulator' button is pressed.
+     * Opens an about window.
+     */
+    @FXML
+    private void aboutOnAction() {
+        Alert alert = new Alert(Alert.AlertType.INFORMATION, ABOUT);
+        alert.setTitle("About");
+        alert.setHeaderText("About");
+        alert.showAndWait();
+    }
+
+    /**
+     * Called when the 'Input Enable' button is pressed.
+     */
+    @FXML
+    private void inputEnableOnAction() {
+        computer.fgi().load(1);
+
+        if (inputFX.getText().matches("0x[0-9a-fA-F][0-9a-fA-F]?")) {
+            computer.inpr().load(Integer.parseInt(inputFX.getText()));
+        } else if (inputFX.getText().length() == 1) {
+            computer.inpr().load(inputFX.getText().charAt(0));
+        }
+    }
+
+    /**
+     * Called when the 'Output Enable' button is pressed.
+     */
+    @FXML
+    private void outputEnableOnAction() {
+        computer.fgo().load(1);
+    }
+
+    /**
+     * Called when the 'Run' button is toggled.
+     */
+    @FXML
+    private void runOnAction() {
+        if (task != null && task.isRunning()) {
+            task.cancel();
+        }
+
+        if (runFX.isSelected()) {
+            task = new Task<Void>() {
+                @Override
+                protected Void call() throws Exception {
+                    while (computer.s().value(0)) {
+                        if (computer.microoperations().isEmpty()) {
+                            computer.tick();
+                        }
+
+                        while (!computer.microoperations().isEmpty()) {
+                            Microoperation microoperation = computer.microoperations().poll();
+
+                            Platform.runLater(() -> {
+                                microoperationFX.setText(microoperation.toString());
+                                microoperation.execute(computer);
+                                ramFX.refresh();
+                            });
+
+                            Thread.sleep(Math.round(800 / speedFX.getValue()));
+                        }
+                    }
+
+                    return null;
+                }
+            };
+
+            Thread thread = new Thread(task);
+            thread.setDaemon(true);
+            thread.start();
+        }
+    }
+
+    /**
+     * Called when the 'Step' button is pressed.
+     */
+    @FXML
+    private void stepOnAction() {
+        if (task != null && task.isRunning()) {
+            task.cancel();
+        }
+
+        runFX.setSelected(false);
+        if (computer.s().value(0)) {
+            if (computer.microoperations().isEmpty()) {
+                computer.tick();
+            }
+
+            Platform.runLater(() -> {
+                if (!computer.microoperations().isEmpty()) {
+                    Microoperation microoperation = computer.microoperations().poll();
+                    microoperationFX.setText(microoperation.toString());
+                    microoperation.execute(computer);
+                    ramFX.refresh();
+                }
+            });
+        }
+    }
+
+    /**
+     * Called when the 'Export' button is pressed.
+     */
+    @FXML
+    private void exportOnAction() {
+        TextArea textArea = new TextArea(computer.ram().toString());
+        textArea.setEditable(false);
+        textArea.setWrapText(true);
+        textArea.setFont(Code.CODE_FONT);
+
+        GridPane gridPane = new GridPane();
+        gridPane.setMaxWidth(Double.MAX_VALUE);
+        gridPane.add(textArea, 0, 0);
+
+        Alert alert = new Alert(Alert.AlertType.INFORMATION, "", new ButtonType("Copy to Clipboard", ButtonBar.ButtonData.OTHER));
+        alert.setTitle("RAM");
+        alert.setHeaderText("RAM");
+        alert.getDialogPane().setContent(gridPane);
+        alert.showAndWait().ifPresent(type -> {
+            if (type.getButtonData() == ButtonBar.ButtonData.OTHER) {
+                final ClipboardContent content = new ClipboardContent();
+                content.putString(computer.ram().toString());
+                Clipboard.getSystemClipboard().setContent(content);
+            }
+        });
+    }
 
     /**
      * Used to launch the application.
+     *
      * @param stage Essentially the window to display the application in.
      * @throws IOException Occurs when the file 'main.fxml' representing the layout of the application could not be accessed.
      */
@@ -284,73 +521,80 @@ public class Main extends Application {
         // Loads the main application and starts it
         FXMLLoader loader = new FXMLLoader(getClass().getResource("main.fxml"));
         Parent root = loader.load();
-        ((Main)loader.getController()).stage = stage;
 
-        Scene scene = new Scene(root, 900, 500);
+        Main main = loader.getController();
+        main.stage = stage;
+        main.bind();
+
+        Scene scene = new Scene(root, 1200, 700);
 
         stage.setTitle(TITLE);
         stage.setScene(scene);
-
+        stage.setOnCloseRequest((event) -> main.quitOnAction());
         stage.show();
     }
 
     /**
-     * Shows an alert prompting the user to save a {@link Code} document.
-     * @param alert {@link Alert} to display.
-     * @param code The unsaved {@link Code} document.
+     * Binds the application controls to simulation values.
      */
-    private void showUnsavedAlert(Alert alert, Code code) {
-        alert.showAndWait().ifPresent(t -> {
-            if (t == ButtonType.YES) {
-                saveOnAction();
-
-                if (!code.tab().getText().endsWith("*")) {
-                    codes.remove(tabsFX.getSelectionModel().getSelectedIndex());
-                    tabsFX.getTabs().remove(tabsFX.getSelectionModel().getSelectedIndex());
-                }
-            } else if (t == ButtonType.NO) {
-                codes.remove(tabsFX.getSelectionModel().getSelectedIndex());
-                tabsFX.getTabs().remove(tabsFX.getSelectionModel().getSelectedIndex());
+    private void bind() {
+        scFX.textProperty().bindBidirectional(computer.scProperty(), new StringConverter<Number>() {
+            @Override
+            public String toString(Number number) {
+                return number.toString();
             }
+
+            @Override
+            public Number fromString(String s) {
+                return Integer.decode(s);
+            }
+        });
+        pcFX.textProperty().bindBidirectional(computer.pc().valueProperty(), computer.pc().converter());
+        arFX.textProperty().bindBidirectional(computer.ar().valueProperty(), computer.ar().converter());
+        irFX.textProperty().bindBidirectional(computer.ir().valueProperty(), computer.ir().converter());
+        drFX.textProperty().bindBidirectional(computer.dr().valueProperty(), computer.dr().converter());
+        acFX.textProperty().bindBidirectional(computer.ac().valueProperty(), computer.ac().converter());
+        trFX.textProperty().bindBidirectional(computer.tr().valueProperty(), computer.tr().converter());
+        inprFX.textProperty().bindBidirectional(computer.inpr().valueProperty(), computer.inpr().converter());
+        outrFX.textProperty().bindBidirectional(computer.outr().valueProperty(), new StringConverter<Number>() {
+            @Override
+            public String toString(Number number) {
+                return Character.toString((char)number.intValue());
+            }
+
+            @Override
+            public Number fromString(String s) {
+                return (int)s.charAt(0);
+            }
+        });
+        iFX.textProperty().bindBidirectional(computer.i().valueProperty(), computer.i().converter());
+        sFX.textProperty().bindBidirectional(computer.s().valueProperty(), computer.s().converter());
+        eFX.textProperty().bindBidirectional(computer.e().valueProperty(), computer.e().converter());
+        rFX.textProperty().bindBidirectional(computer.r().valueProperty(), computer.r().converter());
+        ienFX.textProperty().bindBidirectional(computer.ien().valueProperty(), computer.ien().converter());
+        fgiFX.textProperty().bindBidirectional(computer.fgi().valueProperty(), computer.fgi().converter());
+        fgoFX.textProperty().bindBidirectional(computer.fgo().valueProperty(), computer.fgo().converter());
+
+        ramFX.itemsProperty().bindBidirectional(computer.ram().valuesProperty());
+
+        computer.pc().valueProperty().addListener((observableValue, number, t1) -> {
+            ramFX.getSelectionModel().select(t1.intValue());
+            ramFX.scrollTo(Math.max(0, t1.intValue() - 7));
         });
     }
 
     /**
-     * @return {@link Alert} prompting the user to save a modified {@link Code} document.
+     * Called when the 'Quit' button is pressed.
+     * Alerts the user about any unsaved code.
      */
-    private static Alert getUnsavedAlert() {
-        Alert alert = new Alert(Alert.AlertType.NONE);
-        alert.setTitle("Unsaved Code");
-        alert.setContentText("Would you like to save before closing?");
-        alert.getButtonTypes().setAll(ButtonType.YES, ButtonType.NO, ButtonType.CANCEL);
-        return alert;
-    }
+    @FXML
+    public void quitOnAction() {
+        for (Code code : codes) {
+            if (!code.close(stage)) {
+                return;
+            }
+        }
 
-    /**
-     * @param title {@link String} to title the {@link Tab} with.
-     * @param string {@link String} to place in the text area of the {@link Tab}.
-     * @param listener {@link ChangeListener} which will check for changes to {@link Tab}. {@link Code} acts as a {@link ChangeListener}.
-     * @return {@link Tab} titled {@code title}, which inner text {@code string} and listener {@code listener}.
-     */
-    static Tab getTab(String title, String string, ChangeListener<String> listener) {
-        // Creates a tab with a text area in it
-        TextArea text = new TextArea();
-        text.setText(string);
-        text.setFont(CODE_FONT);
-        text.textProperty().addListener(listener);
-
-        Tab tab = new Tab();
-        tab.setText(title);
-        tab.setContent(text);
-
-        return tab;
-    }
-
-    /**
-     * Starting point for the application.
-     * @param args Ignore.
-     */
-    public static void main(String[] args) {
-        launch(args);
+        Platform.exit();
     }
 }

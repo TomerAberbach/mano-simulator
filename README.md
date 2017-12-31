@@ -1,5 +1,7 @@
-# mano-assembler
+# mano-simulator
 
-This is a Java FX application which compiles assembly for the instruction set of Mano's computer.
-It outputs a RAM memory map which is meant to be pasted into a circuit design and simulator software, LogicWorks.
-The instruction set and the specifications of Mano's computer can be found the resources/other/ directory.
+This is a JavaFX application which compiles assembly code for and runs a simulation of Mano's Computer as detailed in:
+Computer System Architecture, 3rd edition
+by M. Morris Mano
+Published by Prentice-Hall, c 1993
+Chapter 5, pp 123-172.
