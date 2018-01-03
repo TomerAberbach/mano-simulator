@@ -3,7 +3,7 @@
 <!--
   ~ Tomer Aberbach
   ~ aberbat1@tcnj.edu
-  ~ 12/30/2017
+  ~ 1/3/2018
   ~ Students at The College of New Jersey are granted
   ~ unlimited use and access to this application and its code.
   -->
@@ -39,7 +39,7 @@
     <SplitPane dividerPositions="0.25" VBox.vgrow="ALWAYS">
         <TabPane fx:id="codesFX" tabClosingPolicy="UNAVAILABLE"/>
         <TabPane fx:id="tabsFX" tabClosingPolicy="UNAVAILABLE">
-            <Tab closable="false" text="Instructions">
+            <Tab closable="false" text="Help">
                 <AnchorPane>
                     <padding>
                         <Insets bottom="10.0" left="10.0" right="10.0" top="10.0"/>
@@ -53,7 +53,7 @@
                             <TitledPane text="Memory Reference" expanded="false">
                                 <VBox spacing="5.0">
                                     <TextFlow>
-                                        <Text text="These instructions must be followed by a label referring to a memory address (denoted 'XXX' in the table). An 'I' can follow the label for indirect addressing."/>
+                                        <Text text="These are instructions which must be followed by a label referring to a memory address (denoted 'XXX' in the table). An 'I' can follow the label for indirect addressing."/>
                                     </TextFlow>
                                     <GridPane gridLinesVisible="true">
                                         <padding>
@@ -375,7 +375,7 @@
                             <TitledPane text="Register Reference" expanded="false">
                                 <VBox spacing="5.0">
                                     <TextFlow>
-                                        <Text text="These instructions take no arguments and are not followed by labels."/>
+                                        <Text text="These are instructions which take no arguments and are not followed by labels."/>
                                     </TextFlow>
                                     <GridPane gridLinesVisible="true">
                                         <padding>
@@ -845,7 +845,7 @@
                             <TitledPane text="Input and Output" expanded="false">
                                 <VBox spacing="5.0">
                                     <TextFlow>
-                                        <Text text="These instructions take no arguments and are not followed by labels."/>
+                                        <Text text="These are instructions which take no arguments and are not followed by labels."/>
                                     </TextFlow>
                                     <GridPane gridLinesVisible="true">
                                         <padding>
@@ -1125,6 +1125,191 @@
                                     </GridPane>
                                 </VBox>
                             </TitledPane>
+                            <TitledPane text="Directives" expanded="false">
+                                <VBox spacing="5.0">
+                                    <TextFlow>
+                                        <Text text="These are directives which give queues to the assembler."/>
+                                    </TextFlow>
+                                    <GridPane gridLinesVisible="true">
+                                        <padding>
+                                            <Insets top="0.0" right="0.0" bottom="0.0" left="0.0"/>
+                                        </padding>
+                                        <columnConstraints>
+                                            <ColumnConstraints hgrow="SOMETIMES" percentWidth="33.33" prefWidth="100.0"/>
+                                            <ColumnConstraints hgrow="SOMETIMES" percentWidth="33.33" prefWidth="100.0"/>
+                                            <ColumnConstraints hgrow="SOMETIMES" percentWidth="33.33" prefWidth="100.0"/>
+                                        </columnConstraints>
+
+                                        <VBox alignment="CENTER" GridPane.columnIndex="0" GridPane.rowIndex="0"
+                                              style="-fx-background-color: #dbdbdb">
+                                            <TextFlow textAlignment="CENTER">
+                                                <padding>
+                                                    <Insets top="10.0" right="10.0" bottom="10.0" left="10.0"/>
+                                                </padding>
+                                                <Text textAlignment="CENTER" text="Lexeme"/>
+                                            </TextFlow>
+                                        </VBox>
+                                        <VBox alignment="CENTER" GridPane.columnIndex="1" GridPane.rowIndex="0"
+                                              style="-fx-background-color: #dbdbdb">
+                                            <TextFlow textAlignment="CENTER">
+                                                <padding>
+                                                    <Insets top="10.0" right="10.0" bottom="10.0" left="10.0"/>
+                                                </padding>
+                                                <Text textAlignment="CENTER" text="Argument"/>
+                                            </TextFlow>
+                                        </VBox>
+                                        <VBox alignment="CENTER" GridPane.columnIndex="2" GridPane.rowIndex="0"
+                                              style="-fx-background-color: #dbdbdb">
+                                            <TextFlow textAlignment="CENTER">
+                                                <padding>
+                                                    <Insets top="10.0" right="10.0" bottom="10.0" left="10.0"/>
+                                                </padding>
+                                                <Text textAlignment="CENTER" text="Description"/>
+                                            </TextFlow>
+                                        </VBox>
+
+                                        <VBox alignment="CENTER" GridPane.columnIndex="0" GridPane.rowIndex="1"
+                                              style="-fx-background-color: #f9f9f9">
+                                            <TextFlow textAlignment="CENTER">
+                                                <padding>
+                                                    <Insets top="10.0" right="10.0" bottom="10.0" left="10.0"/>
+                                                </padding>
+                                                <Text textAlignment="CENTER" text="ORG"/>
+                                            </TextFlow>
+                                        </VBox>
+                                        <VBox alignment="CENTER" GridPane.columnIndex="1" GridPane.rowIndex="1"
+                                              style="-fx-background-color: #f9f9f9">
+                                            <TextFlow textAlignment="CENTER">
+                                                <padding>
+                                                    <Insets top="10.0" right="10.0" bottom="10.0" left="10.0"/>
+                                                </padding>
+                                                <Text textAlignment="CENTER" text="Hexadecimal number"/>
+                                            </TextFlow>
+                                        </VBox>
+                                        <VBox alignment="CENTER" GridPane.columnIndex="2" GridPane.rowIndex="1"
+                                              style="-fx-background-color: #f9f9f9">
+                                            <TextFlow textAlignment="CENTER">
+                                                <padding>
+                                                    <Insets top="10.0" right="10.0" bottom="10.0" left="10.0"/>
+                                                </padding>
+                                                <Text textAlignment="CENTER" text="Place the next instructions at the specified hexadecimal memory address"/>
+                                            </TextFlow>
+                                        </VBox>
+
+                                        <VBox alignment="CENTER" GridPane.columnIndex="0" GridPane.rowIndex="2"
+                                              style="-fx-background-color: #f9f9f9">
+                                            <TextFlow textAlignment="CENTER">
+                                                <padding>
+                                                    <Insets top="10.0" right="10.0" bottom="10.0" left="10.0"/>
+                                                </padding>
+                                                <Text textAlignment="CENTER" text="START"/>
+                                            </TextFlow>
+                                        </VBox>
+                                        <VBox alignment="CENTER" GridPane.columnIndex="1" GridPane.rowIndex="2"
+                                              style="-fx-background-color: #f9f9f9">
+                                            <TextFlow textAlignment="CENTER">
+                                                <padding>
+                                                    <Insets top="10.0" right="10.0" bottom="10.0" left="10.0"/>
+                                                </padding>
+                                                <Text textAlignment="CENTER" text="Hexadecimal number"/>
+                                            </TextFlow>
+                                        </VBox>
+                                        <VBox alignment="CENTER" GridPane.columnIndex="2" GridPane.rowIndex="2"
+                                              style="-fx-background-color: #f9f9f9">
+                                            <TextFlow textAlignment="CENTER">
+                                                <padding>
+                                                    <Insets top="10.0" right="10.0" bottom="10.0" left="10.0"/>
+                                                </padding>
+                                                <Text textAlignment="CENTER" text="Place the next instructions and start the simulation at the specified hexadecimal memory address"/>
+                                            </TextFlow>
+                                        </VBox>
+
+                                        <VBox alignment="CENTER" GridPane.columnIndex="0" GridPane.rowIndex="3"
+                                              style="-fx-background-color: #f9f9f9">
+                                            <TextFlow textAlignment="CENTER">
+                                                <padding>
+                                                    <Insets top="10.0" right="10.0" bottom="10.0" left="10.0"/>
+                                                </padding>
+                                                <Text textAlignment="CENTER" text="END"/>
+                                            </TextFlow>
+                                        </VBox>
+                                        <VBox alignment="CENTER" GridPane.columnIndex="1" GridPane.rowIndex="3"
+                                              style="-fx-background-color: #f9f9f9">
+                                            <TextFlow textAlignment="CENTER">
+                                                <padding>
+                                                    <Insets top="10.0" right="10.0" bottom="10.0" left="10.0"/>
+                                                </padding>
+                                                <Text textAlignment="CENTER" text="None"/>
+                                            </TextFlow>
+                                        </VBox>
+                                        <VBox alignment="CENTER" GridPane.columnIndex="2" GridPane.rowIndex="3"
+                                              style="-fx-background-color: #f9f9f9">
+                                            <TextFlow textAlignment="CENTER">
+                                                <padding>
+                                                    <Insets top="10.0" right="10.0" bottom="10.0" left="10.0"/>
+                                                </padding>
+                                                <Text textAlignment="CENTER" text="End of assembly instructions"/>
+                                            </TextFlow>
+                                        </VBox>
+
+                                        <VBox alignment="CENTER" GridPane.columnIndex="0" GridPane.rowIndex="4"
+                                              style="-fx-background-color: #f9f9f9">
+                                            <TextFlow textAlignment="CENTER">
+                                                <padding>
+                                                    <Insets top="10.0" right="10.0" bottom="10.0" left="10.0"/>
+                                                </padding>
+                                                <Text textAlignment="CENTER" text="DEC"/>
+                                            </TextFlow>
+                                        </VBox>
+                                        <VBox alignment="CENTER" GridPane.columnIndex="1" GridPane.rowIndex="4"
+                                              style="-fx-background-color: #f9f9f9">
+                                            <TextFlow textAlignment="CENTER">
+                                                <padding>
+                                                    <Insets top="10.0" right="10.0" bottom="10.0" left="10.0"/>
+                                                </padding>
+                                                <Text textAlignment="CENTER" text="Decimal number"/>
+                                            </TextFlow>
+                                        </VBox>
+                                        <VBox alignment="CENTER" GridPane.columnIndex="2" GridPane.rowIndex="4"
+                                              style="-fx-background-color: #f9f9f9">
+                                            <TextFlow textAlignment="CENTER">
+                                                <padding>
+                                                    <Insets top="10.0" right="10.0" bottom="10.0" left="10.0"/>
+                                                </padding>
+                                                <Text textAlignment="CENTER" text="Set the value at the current memory address to the specified decimal value"/>
+                                            </TextFlow>
+                                        </VBox>
+
+                                        <VBox alignment="CENTER" GridPane.columnIndex="0" GridPane.rowIndex="5"
+                                              style="-fx-background-color: #f9f9f9">
+                                            <TextFlow textAlignment="CENTER">
+                                                <padding>
+                                                    <Insets top="10.0" right="10.0" bottom="10.0" left="10.0"/>
+                                                </padding>
+                                                <Text textAlignment="CENTER" text="HEX"/>
+                                            </TextFlow>
+                                        </VBox>
+                                        <VBox alignment="CENTER" GridPane.columnIndex="1" GridPane.rowIndex="5"
+                                              style="-fx-background-color: #f9f9f9">
+                                            <TextFlow textAlignment="CENTER">
+                                                <padding>
+                                                    <Insets top="10.0" right="10.0" bottom="10.0" left="10.0"/>
+                                                </padding>
+                                                <Text textAlignment="CENTER" text="Hexadecimal number"/>
+                                            </TextFlow>
+                                        </VBox>
+                                        <VBox alignment="CENTER" GridPane.columnIndex="2" GridPane.rowIndex="5"
+                                              style="-fx-background-color: #f9f9f9">
+                                            <TextFlow textAlignment="CENTER">
+                                                <padding>
+                                                    <Insets top="10.0" right="10.0" bottom="10.0" left="10.0"/>
+                                                </padding>
+                                                <Text textAlignment="CENTER" text="Set the value at the current memory address to the specified hexadecimal value"/>
+                                            </TextFlow>
+                                        </VBox>
+                                    </GridPane>
+                                </VBox>
+                            </TitledPane>
                         </VBox>
                     </ScrollPane>
                 </AnchorPane>
@@ -1195,6 +1380,7 @@
                             <HBox spacing="10.0" alignment="CENTER">
                                 <Text text="Input:" HBox.hgrow="ALWAYS"/>
                                 <TextField fx:id="inputFX" prefWidth="50.0"/>
+                                <Button onAction="#inputHelpOnAction" text="?"/>
                                 <Button onAction="#inputEnableOnAction" text="Input Enable" HBox.hgrow="ALWAYS"/>
                                 <Button onAction="#outputEnableOnAction" text="Output Enable" HBox.hgrow="ALWAYS"/>
                             </HBox>

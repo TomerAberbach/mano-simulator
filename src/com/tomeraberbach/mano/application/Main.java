@@ -1,7 +1,7 @@
 /*
  * Tomer Aberbach
  * aberbat1@tcnj.edu
- * 12/30/2017
+ * 1/3/2018
  * Students at The College of New Jersey are granted
  * unlimited use and access to this application and its code.
  */
@@ -17,6 +17,7 @@ import com.tomeraberbach.mano.simulation.RAM;
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.concurrent.Task;
+import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
@@ -48,7 +49,7 @@ public class Main extends Application {
      */
     private static final String ABOUT = "Tomer Aberbach\n" +
         "aberbat1@tcnj.edu\n" +
-        "12/30/2017\n" +
+        "1/3/2018\n" +
         "Students at The College of New Jersey are granted\n" +
         "unlimited use and access to this application and\n" +
         "its code.";
@@ -394,18 +395,41 @@ public class Main extends Application {
         alert.showAndWait();
     }
 
+
+    public void inputHelpOnAction() {
+        new Alert(Alert.AlertType.INFORMATION,
+            "Input may come in the form of a single character\n" +
+                      "(e.g. 'H', '2', '.', etc.), in which case its ASCII value\n" +
+                      "will be loaded into the accumulator, or in the form\n" +
+                      "of a hexadecimal unsigned integer preceded by\n" +
+                      "'0x' (e.g. '0x3', '0x5A', '0xFF'), in which case\n" +
+                      "the hexadecimal value will be loaded into\n" +
+                      "the accumulator."
+        ).showAndWait();
+    }
+
     /**
      * Called when the 'Input Enable' button is pressed.
      */
     @FXML
     private void inputEnableOnAction() {
-        computer.fgi().load(1);
+        Platform.runLater(() -> {
+            if (inputFX.getText().matches("0x[0-9a-fA-F][0-9a-fA-F]?")) {
+                computer.inpr().load(Integer.parseInt(inputFX.getText()));
+            } else if (inputFX.getText().length() == 1) {
+                computer.inpr().load(Math.min(inputFX.getText().charAt(0), computer.inpr().max()));
+            } else {
+                if (task != null && task.isRunning()) {
+                    task.cancel();
+                }
 
-        if (inputFX.getText().matches("0x[0-9a-fA-F][0-9a-fA-F]?")) {
-            computer.inpr().load(Integer.parseInt(inputFX.getText()));
-        } else if (inputFX.getText().length() == 1) {
-            computer.inpr().load(inputFX.getText().charAt(0));
-        }
+                runFX.setSelected(false);
+                inputHelpOnAction();
+                return;
+            }
+
+            computer.fgi().load(1);
+        });
     }
 
     /**
