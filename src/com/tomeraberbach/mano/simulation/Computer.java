@@ -422,7 +422,19 @@ public class Computer {
                 computer -> computer.decoder.value(7) && computer.i.value(0) && computer.sc() == 3 && computer.ir.value(11)
             ),
             new Microoperation("AC(0-7) <- INPR",
-                computer -> computer.ac.load(computer.inpr.value())
+                computer -> {
+                    boolean[] bits = new boolean[computer.ac.size()];
+
+                    for (int i = 0; i <= 7; i++) {
+                        bits[i] = computer.inpr.value(i);
+                    }
+
+                    for (int i = 8; i < computer.ac.size(); i++) {
+                        bits[i] = computer.ac.value(i);
+                    }
+
+                    computer.ac.load(Computer.value(bits));
+                }
             )
         ));
 
