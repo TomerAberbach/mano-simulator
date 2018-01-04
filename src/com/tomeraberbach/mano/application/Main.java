@@ -330,6 +330,7 @@ public class Main extends Application {
         }
 
         runFX.setSelected(false);
+        runFX.setText("Run");
         microoperationFX.setText("");
         computer.load(program);
         ramFX.refresh();
@@ -415,7 +416,7 @@ public class Main extends Application {
     private void inputEnableOnAction() {
         Platform.runLater(() -> {
             if (inputFX.getText().matches("0x[0-9a-fA-F][0-9a-fA-F]?")) {
-                computer.inpr().load(Integer.parseInt(inputFX.getText()));
+                computer.inpr().load(Integer.decode(inputFX.getText()));
             } else if (inputFX.getText().length() == 1) {
                 computer.inpr().load(Math.min(inputFX.getText().charAt(0), computer.inpr().max()));
             } else {
@@ -424,6 +425,7 @@ public class Main extends Application {
                 }
 
                 runFX.setSelected(false);
+                runFX.setText("Run");
                 inputHelpOnAction();
                 return;
             }
@@ -450,6 +452,8 @@ public class Main extends Application {
         }
 
         if (runFX.isSelected()) {
+            runFX.setText("Stop");
+
             task = new Task<Void>() {
                 @Override
                 protected Void call() throws Exception {
@@ -478,6 +482,8 @@ public class Main extends Application {
             Thread thread = new Thread(task);
             thread.setDaemon(true);
             thread.start();
+        } else {
+            runFX.setText("Run");
         }
     }
 
@@ -491,6 +497,7 @@ public class Main extends Application {
         }
 
         runFX.setSelected(false);
+        runFX.setText("Run");
         if (computer.s().value(0)) {
             if (computer.microoperations().isEmpty()) {
                 computer.tick();

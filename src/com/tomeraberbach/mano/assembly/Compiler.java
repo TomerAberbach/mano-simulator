@@ -143,7 +143,9 @@ public class Compiler {
                 label();
             }
 
-            switch (token.lexeme()) {
+            String lexeme = token.lexeme().toUpperCase();
+
+            switch (lexeme) {
                 case "ORG":
                     org(false);
                     break;
@@ -170,15 +172,15 @@ public class Compiler {
                     labels.add(null);
 
                     // Checks if the argument is a decimal or hexadecimal number literal
-                    if (token.lexeme().equals("DEC") || token.lexeme().equals("HEX")) {
+                    if (lexeme.equals("DEC") || lexeme.equals("HEX")) {
                         // Checks if no number literal follows the decimal or hexadecimal label
                         if (tokens.isEmpty()) {
-                            errors.add("Missing " + (token.lexeme().equals("HEX") ? "hexadecimal" : "decimal") + " number literal after " + token + ".");
+                            errors.add("Missing " + (lexeme.equals("HEX") ? "hexadecimal" : "decimal") + " number literal after " + token + ".");
                         } else {
                             Token argument = tokens.poll();
 
                             // Gets the argument as a 12 bit number
-                            int number = get12BitNumber((token.lexeme().equals("HEX") ? "0x" : "") + argument.lexeme(), Computer.maxValue(Computer.VALUE_SIZE));
+                            int number = get12BitNumber((lexeme.equals("HEX") ? "0x" : "") + argument.lexeme(), Computer.maxValue(Computer.VALUE_SIZE));
 
                             // Checks if the argument was a valid address
                             if (number >= 0) {
@@ -188,7 +190,7 @@ public class Compiler {
                                 errors.add("Invalid address, " + argument + ".");
                             }
                         }
-                    } else if (Instruction.MEMORY_REFERENCE_INSTRUCTIONS.containsKey(token.lexeme())) {
+                    } else if (Instruction.MEMORY_REFERENCE_INSTRUCTIONS.containsKey(lexeme)) {
                         // Checks if there is no argument following the memory reference instruction
                         if (tokens.isEmpty()) {
                             errors.add("Missing argument after memory address instruction, " + token + ".");
@@ -200,16 +202,16 @@ public class Compiler {
 
                             // Checks if indirect addressing is being used
                             instruction = !tokens.isEmpty() && tokens.peek().lexeme().equals("I") ?
-                                new Instruction(address, Instruction.MEMORY_REFERENCE_INSTRUCTIONS.get(token.lexeme()), token, argument, tokens.poll()).indirect() :
-                                new Instruction(address, Instruction.MEMORY_REFERENCE_INSTRUCTIONS.get(token.lexeme()), token, argument);
+                                new Instruction(address, Instruction.MEMORY_REFERENCE_INSTRUCTIONS.get(lexeme), token, argument, tokens.poll()).indirect() :
+                                new Instruction(address, Instruction.MEMORY_REFERENCE_INSTRUCTIONS.get(lexeme), token, argument);
 
                             // Saves the label argument to resolve later once the symbol table is full
                             labels.set(labels.size() - 1, argument.lexeme());
 
                             instructions.add(instruction);
                         }
-                    } else if (Instruction.IMPLICIT_REFERENCE_INSTRUCTIONS.containsKey(token.lexeme())) {
-                        instructions.add(new Instruction(address, Instruction.IMPLICIT_REFERENCE_INSTRUCTIONS.get(token.lexeme()), token));
+                    } else if (Instruction.IMPLICIT_REFERENCE_INSTRUCTIONS.containsKey(lexeme)) {
+                        instructions.add(new Instruction(address, Instruction.IMPLICIT_REFERENCE_INSTRUCTIONS.get(lexeme), token));
                     } else {
                         errors.add("Invalid instruction token, " + token + (instructions.size() > 0 ? " or potentially unneeded argument after " + instructions.get(instructions.size() - 1).tokens()[0] : "") + ".");
                     }
