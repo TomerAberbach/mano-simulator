@@ -561,7 +561,13 @@ public class Main extends Application {
 
         stage.setTitle(TITLE);
         stage.setScene(scene);
-        stage.setOnCloseRequest((event) -> main.quitOnAction());
+        stage.setOnCloseRequest(event -> {
+            for (Code code : main.codes) {
+                if (!code.close(main.stage)) {
+                    event.consume();
+                }
+            }
+        });
         stage.show();
     }
 
