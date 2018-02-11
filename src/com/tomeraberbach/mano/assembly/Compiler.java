@@ -314,7 +314,14 @@ public class Compiler {
                     // Adds the address of the label to the instruction hex
                     instructions.set(i, instructions.get(i).argument(this.labels.get(labels.get(i))));
                 } else {
-                    errors.add("Unrecognized label name, " + instructions.get(i).tokens()[1] + " or potentially missing argument after " + instructions.get(i).tokens()[0] + ".");
+                    switch (instructions.get(i).tokens().length) {
+                        case 1:
+                            errors.add("Unrecognized label name, " + instructions.get(i).tokens()[0] + ".");
+                            break;
+                        case 2:
+                            errors.add("Unrecognized label name, " + instructions.get(i).tokens()[1] + " or potentially missing argument after " + instructions.get(i).tokens()[0] + ".");
+                            break;
+                    }
                 }
             }
         }
