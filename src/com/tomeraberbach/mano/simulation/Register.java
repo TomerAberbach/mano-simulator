@@ -9,9 +9,9 @@
 package com.tomeraberbach.mano.simulation;
 
 import com.tomeraberbach.mano.Utilities;
+import javafx.beans.binding.StringBinding;
 import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.SimpleIntegerProperty;
-import javafx.util.StringConverter;
 
 import java.util.stream.IntStream;
 
@@ -31,12 +31,7 @@ public class Register {
     /**
      * The value currently in this {@link Register}.
      */
-    private IntegerProperty value;
-
-    /**
-     * The converter for this value to a {@link String}.
-     */
-    private StringConverter<Number> converter;
+    private SimpleIntegerProperty value;
 
 
     /**
@@ -56,17 +51,6 @@ public class Register {
 
         this.size = size;
         value = new SimpleIntegerProperty(0);
-        converter = new StringConverter<Number>() {
-            @Override
-            public String toString(Number number) {
-                return Utilities.hex(number.intValue(), size / 4);
-            }
-
-            @Override
-            public Number fromString(String s) {
-                return Integer.decode(s);
-            }
-        };
     }
 
 
@@ -80,7 +64,7 @@ public class Register {
     /**
      * @return {@link Register#value}.
      */
-    public IntegerProperty valueProperty() {
+    public SimpleIntegerProperty valueProperty() {
         return value;
     }
 
@@ -121,18 +105,17 @@ public class Register {
     }
 
     /**
-     * @return {@link Register#converter}.
+     * @return {@link StringBinding} representing {@link Register#value} as a hexadecimal {@link String}.
      */
-    public StringConverter<Number> converter() {
-        return converter;
-    }
+    public StringBinding stringBinding() {
+        return new StringBinding() {
+            { super.bind(value); }
 
-
-    /**
-     * @return Integer representing the minimum unsigned value this {@link Register} can hold.
-     */
-    public int min() {
-        return Computer.MIN_VALUE;
+            @Override
+            protected String computeValue() {
+                return Utilities.hex(value.get(), size / 4);
+            }
+        };
     }
 
     /**

@@ -9,7 +9,6 @@
 package com.tomeraberbach.mano.simulation;
 
 import com.tomeraberbach.mano.Utilities;
-import javafx.beans.property.Property;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -44,7 +43,7 @@ public class RAM {
     /**
      * The {@link Integer} values property currently in this {@link RAM}.
      */
-    private Property<ObservableList<Memory>> valuesProperty;
+    private SimpleObjectProperty<ObservableList<Memory>> valuesProperty;
 
     /**
      * Constructor which is the equivalent of calling {@link RAM#RAM(int, int)} arguments {@link Computer#ADDRESS_SIZE} and {@link Computer#VALUE_SIZE}.
@@ -66,7 +65,7 @@ public class RAM {
         this.addressSize = addressSize;
         this.valueSize = valueSize;
 
-        values = new ArrayList<>(IntStream.rangeClosed(0, maxAddress()).sequential().mapToObj(i -> new Memory("", Utilities.hex(i, 3), 0, "")).collect(Collectors.toList()));
+        values = IntStream.rangeClosed(0, maxAddress()).sequential().mapToObj(i -> new Memory("", Utilities.hex(i, 3), 0, "")).collect(Collectors.toCollection(ArrayList::new));
         valuesProperty = new SimpleObjectProperty<>(FXCollections.observableArrayList(values));
     }
 
@@ -75,41 +74,6 @@ public class RAM {
      */
     public int maxAddress() {
         return Computer.maxValue(addressSize);
-    }
-
-    /**
-     * @return {@link RAM#addressSize}.
-     */
-    public int addressSize() {
-        return addressSize;
-    }
-
-    /**
-     * @return {@link RAM#valueSize}.
-     */
-    public int valueSize() {
-        return valueSize;
-    }
-
-    /**
-     * @return Integer representing the minimum unsigned value an address in this {@link RAM} can be.
-     */
-    public int minAddress() {
-        return Computer.MIN_VALUE;
-    }
-
-    /**
-     * @return Integer representing the minimum unsigned value this {@link RAM} can hold.
-     */
-    public int minValue() {
-        return Computer.MIN_VALUE;
-    }
-
-    /**
-     * @return Integer representing the maximum unsigned value this {@link RAM} can hold.
-     */
-    public int maxValue() {
-        return Computer.maxValue(valueSize);
     }
 
 
@@ -123,7 +87,7 @@ public class RAM {
     /**
      * @return {@link RAM#valuesProperty}.
      */
-    public Property<ObservableList<Memory>> valuesProperty() {
+    public SimpleObjectProperty<ObservableList<Memory>> valuesProperty() {
         return valuesProperty;
     }
 

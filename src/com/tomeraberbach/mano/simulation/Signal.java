@@ -60,13 +60,6 @@ public class Signal {
         return control.test(computer);
     }
 
-    /**
-     * @param computer {@link Computer} that will be modified by the {@link Microoperation#execute(Computer)} of this {@link Signal#microoperation}.
-     */
-    public void execute(Computer computer) {
-        microoperation.execute(computer);
-    }
-
 
     /**
      * @return {@code control + ": " + microoperation}

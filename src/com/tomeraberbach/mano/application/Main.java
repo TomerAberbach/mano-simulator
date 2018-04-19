@@ -16,24 +16,27 @@ import com.tomeraberbach.mano.simulation.Microoperation;
 import com.tomeraberbach.mano.simulation.RAM;
 import javafx.application.Application;
 import javafx.application.Platform;
+import javafx.beans.binding.StringBinding;
+import javafx.collections.ObservableList;
 import javafx.concurrent.Task;
-import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
-import javafx.scene.input.Clipboard;
-import javafx.scene.input.ClipboardContent;
+import javafx.scene.input.*;
 import javafx.scene.layout.GridPane;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
-import javafx.util.StringConverter;
 
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.concurrent.CountDownLatch;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 /**
  * JavaFX controller and starting point for the main application window.
@@ -49,10 +52,20 @@ public class Main extends Application {
      */
     private static final String ABOUT = "Tomer Aberbach\n" +
         "aberbat1@tcnj.edu\n" +
-        "1/3/2018\n" +
+        "4/18/2018\n" +
         "Students at The College of New Jersey are granted\n" +
         "unlimited use and access to this application and\n" +
         "its code.";
+    /**
+     * {@link KeyCombination} for saving.
+     */
+    public static final KeyCombination SAVING = new KeyCodeCombination(KeyCode.S, KeyCombination.CONTROL_DOWN);
+
+    /**
+     * {@link KeyCombination} for assembling.
+     */
+    public static final KeyCombination ASSEMBLING = new KeyCodeCombination(KeyCode.D, KeyCombination.CONTROL_DOWN);
+
     /**
      * {@link ArrayList} of currently open {@link Code} documents.
      */
@@ -311,8 +324,10 @@ public class Main extends Application {
             Program program = Compiler.compile(((TextArea)tab.getContent()).getText());
 
             if (program.errors().size() > 0) {
-                builder.append(tab.getText()).append(":\n");
-                program.errors().forEach(s -> builder.append(s).append("\n"));
+                builder
+                    .append(tab.getText())
+                    .append(":\n")
+                    .append(program.errors().stream().collect(Collectors.joining("\n")));
             }
 
             consoleFX.setText(builder.toString());
@@ -368,8 +383,10 @@ public class Main extends Application {
                 programs[i] = Compiler.compile(((TextArea)codes.get(i).tab().getContent()).getText());
 
                 if (programs[i].errors().size() > 0) {
-                    builder.append(codes.get(i).tab().getText()).append(":\n");
-                    programs[i].errors().forEach(s -> builder.append(s).append("\n"));
+                    builder
+                        .append(codes.get(i).tab().getText())
+                        .append(":\n")
+                        .append(programs[i].errors().stream().collect(Collectors.joining("\n")));
                 }
             }
 
@@ -396,16 +413,20 @@ public class Main extends Application {
         alert.showAndWait();
     }
 
-
+    /**
+     * Called when the '?' button is pressed.
+     * Opens a help window for input.
+     */
+    @FXML
     public void inputHelpOnAction() {
         new Alert(Alert.AlertType.INFORMATION,
-            "Input may come in the form of a single character\n" +
-                      "(e.g. 'H', '2', '.', etc.), in which case its ASCII value\n" +
-                      "will be loaded into the accumulator, or in the form\n" +
-                      "of a hexadecimal unsigned integer preceded by\n" +
-                      "'0x' (e.g. '0x3', '0x5A', '0xFF'), in which case\n" +
-                      "the hexadecimal value will be loaded into\n" +
-                      "the accumulator."
+"Input may come in the form of a single character\n" +
+          "(e.g. 'H', '2', '.', etc.), in which case its ASCII value\n" +
+          "will be loaded into the accumulator, or in the form\n" +
+          "of a hexadecimal unsigned integer preceded by\n" +
+          "'0x' (e.g. '0x3', '0x5A', '0xFF'), in which case\n" +
+          "the hexadecimal value will be loaded into\n" +
+          "the accumulator."
         ).showAndWait();
     }
 
@@ -439,7 +460,7 @@ public class Main extends Application {
      */
     @FXML
     private void outputEnableOnAction() {
-        computer.fgo().load(1);
+        Platform.runLater(() -> computer.fgo().load(1));
     }
 
     /**
@@ -458,20 +479,31 @@ public class Main extends Application {
                 @Override
                 protected Void call() throws Exception {
                     while (computer.s().value(0)) {
+                        CountDownLatch latch = new CountDownLatch(1);
+
                         if (computer.microoperations().isEmpty()) {
-                            computer.tick();
+                            Platform.runLater(() -> {
+                                computer.tick();
+                                latch.countDown();
+                            });
+                        } else {
+                            latch.countDown();
                         }
+
+                        latch.await();
 
                         while (!computer.microoperations().isEmpty()) {
                             Microoperation microoperation = computer.microoperations().poll();
 
-                            Platform.runLater(() -> {
-                                microoperationFX.setText(microoperation.toString());
-                                microoperation.execute(computer);
-                                ramFX.refresh();
-                            });
+                            if (microoperation != null) {
+                                Platform.runLater(() -> {
+                                    microoperationFX.setText(microoperation.toString());
+                                    microoperation.execute(computer);
+                                    ramFX.refresh();
+                                });
 
-                            Thread.sleep(Math.round(800 / speedFX.getValue()));
+                                Thread.sleep(Math.round(800 / Math.pow(speedFX.getValue(), 3.0)));
+                            }
                         }
                     }
 
@@ -506,9 +538,12 @@ public class Main extends Application {
             Platform.runLater(() -> {
                 if (!computer.microoperations().isEmpty()) {
                     Microoperation microoperation = computer.microoperations().poll();
-                    microoperationFX.setText(microoperation.toString());
-                    microoperation.execute(computer);
-                    ramFX.refresh();
+
+                    if (microoperation != null) {
+                        microoperationFX.setText(microoperation.toString());
+                        microoperation.execute(computer);
+                        ramFX.refresh();
+                    }
                 }
             });
         }
@@ -558,6 +593,15 @@ public class Main extends Application {
         main.bind();
 
         Scene scene = new Scene(root, 1200, 700);
+        scene.setOnKeyPressed(event -> {
+            if (SAVING.match(event)) {
+                main.saveOnAction();
+                event.consume();
+            } else if (ASSEMBLING.match(event)) {
+                main.assembleOnAction();
+                event.consume();
+            }
+        });
 
         stage.setTitle(TITLE);
         stage.setScene(scene);
@@ -575,44 +619,31 @@ public class Main extends Application {
      * Binds the application controls to simulation values.
      */
     private void bind() {
-        scFX.textProperty().bindBidirectional(computer.scProperty(), new StringConverter<Number>() {
-            @Override
-            public String toString(Number number) {
-                return number.toString();
-            }
+        scFX.textProperty().bind(computer.scProperty().asString());
+        pcFX.textProperty().bind(computer.pc().stringBinding());
+        arFX.textProperty().bind(computer.ar().stringBinding());
+        irFX.textProperty().bind(computer.ir().stringBinding());
+        drFX.textProperty().bind(computer.dr().stringBinding());
+        acFX.textProperty().bind(computer.ac().stringBinding());
+        trFX.textProperty().bind(computer.tr().stringBinding());
+        inprFX.textProperty().bind(computer.inpr().stringBinding());
+        outrFX.textProperty().bind(new StringBinding() {
+            { super.bind(computer.outr().valueProperty()); }
 
             @Override
-            public Number fromString(String s) {
-                return Integer.decode(s);
+            protected String computeValue() {
+                return Character.toString((char)computer.outr().value());
             }
         });
-        pcFX.textProperty().bindBidirectional(computer.pc().valueProperty(), computer.pc().converter());
-        arFX.textProperty().bindBidirectional(computer.ar().valueProperty(), computer.ar().converter());
-        irFX.textProperty().bindBidirectional(computer.ir().valueProperty(), computer.ir().converter());
-        drFX.textProperty().bindBidirectional(computer.dr().valueProperty(), computer.dr().converter());
-        acFX.textProperty().bindBidirectional(computer.ac().valueProperty(), computer.ac().converter());
-        trFX.textProperty().bindBidirectional(computer.tr().valueProperty(), computer.tr().converter());
-        inprFX.textProperty().bindBidirectional(computer.inpr().valueProperty(), computer.inpr().converter());
-        outrFX.textProperty().bindBidirectional(computer.outr().valueProperty(), new StringConverter<Number>() {
-            @Override
-            public String toString(Number number) {
-                return Character.toString((char)number.intValue());
-            }
+        iFX.textProperty().bind(computer.i().stringBinding());
+        sFX.textProperty().bind(computer.s().stringBinding());
+        eFX.textProperty().bind(computer.e().stringBinding());
+        rFX.textProperty().bind(computer.r().stringBinding());
+        ienFX.textProperty().bind(computer.ien().stringBinding());
+        fgiFX.textProperty().bind(computer.fgi().stringBinding());
+        fgoFX.textProperty().bind(computer.fgo().stringBinding());
 
-            @Override
-            public Number fromString(String s) {
-                return (int)s.charAt(0);
-            }
-        });
-        iFX.textProperty().bindBidirectional(computer.i().valueProperty(), computer.i().converter());
-        sFX.textProperty().bindBidirectional(computer.s().valueProperty(), computer.s().converter());
-        eFX.textProperty().bindBidirectional(computer.e().valueProperty(), computer.e().converter());
-        rFX.textProperty().bindBidirectional(computer.r().valueProperty(), computer.r().converter());
-        ienFX.textProperty().bindBidirectional(computer.ien().valueProperty(), computer.ien().converter());
-        fgiFX.textProperty().bindBidirectional(computer.fgi().valueProperty(), computer.fgi().converter());
-        fgoFX.textProperty().bindBidirectional(computer.fgo().valueProperty(), computer.fgo().converter());
-
-        ramFX.itemsProperty().bindBidirectional(computer.ram().valuesProperty());
+        ramFX.itemsProperty().bind(computer.ram().valuesProperty());
 
         computer.pc().valueProperty().addListener((observableValue, number, t1) -> {
             ramFX.getSelectionModel().select(t1.intValue());

@@ -20,11 +20,8 @@ import javafx.scene.text.Font;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.PrintWriter;
-import java.util.Scanner;
+import java.io.*;
+import java.util.stream.Collectors;
 
 /**
  * Class used to represent assembly code documents in the {@link Main} application.
@@ -93,22 +90,13 @@ public class Code implements ChangeListener<String> {
      * @throws FileNotFoundException Thrown if {@code file} could not be accessed.
      */
     private static String text(File file) throws FileNotFoundException {
-        Scanner scanner = new Scanner(file);
-        StringBuilder builder = new StringBuilder();
-
-        if (System.getProperty("os.name").toLowerCase().contains("windows")) {
-            // Loops to get all of the text in the given file
-            while (scanner.hasNextLine()) {
-                builder.append(scanner.nextLine()).append("\n\r");
-            }
-        } else {
-            // Loops to get all of the text in the given file
-            while (scanner.hasNextLine()) {
-                builder.append(scanner.nextLine()).append("\n");
-            }
-        }
-
-        return builder.toString();
+        return new BufferedReader(new FileReader(file))
+            .lines()
+            .collect(Collectors.joining(
+                System.getProperty("os.name").toLowerCase().contains("windows") ?
+                    "\n\r" :
+                    "\n"
+            ));
     }
 
     /**
@@ -135,10 +123,10 @@ public class Code implements ChangeListener<String> {
         if (file.exists()) {
             // Saves the content in the code editor window into its file
             try {
-                PrintWriter writer = new PrintWriter(file);
+                BufferedWriter writer = new BufferedWriter(new FileWriter(file));
                 writer.write(((TextArea)tab.getContent()).getText());
                 writer.close();
-            } catch (FileNotFoundException e) {
+            } catch (IOException e) {
                 return false;
             }
 
@@ -174,8 +162,7 @@ public class Code implements ChangeListener<String> {
                     // Saves the code
                     return save(stage);
                 }
-            } catch (IOException ignored) {
-            }
+            } catch (IOException ignored) { }
         }
 
         return false;

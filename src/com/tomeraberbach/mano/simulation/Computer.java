@@ -9,10 +9,12 @@
 package com.tomeraberbach.mano.simulation;
 
 import com.tomeraberbach.mano.assembly.Program;
+import com.tomeraberbach.mano.assembly.Token;
 import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.SimpleIntegerProperty;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * Class representing Mano's computer as detailed in:<br>
@@ -481,7 +483,7 @@ public class Computer {
     /**
      * The current T state of the sequence counter in this {@link Computer}.
      */
-    private IntegerProperty sc;
+    private SimpleIntegerProperty sc;
 
 
     /**
@@ -699,15 +701,8 @@ public class Computer {
     /**
      * @return {@link Computer#sc}.
      */
-    public IntegerProperty scProperty() {
+    public SimpleIntegerProperty scProperty() {
         return sc;
-    }
-
-    /**
-     * @return {@link Computer#decoder}.
-     */
-    public Register decoder() {
-        return decoder;
     }
 
     /**
@@ -839,7 +834,7 @@ public class Computer {
         pc.load(program.start());
         program.instructions().forEach(instruction -> {
             ram.values().get(instruction.address()).setValue(instruction.code());
-            ram.values().get(instruction.address()).setInstruction(Arrays.stream(instruction.tokens()).sequential().reduce(new StringBuilder(), (string, token) -> string.append(" ").append(token.lexeme()), (string1, string2) -> string1.append(" ").append(string2.toString())).toString().trim());
+            ram.values().get(instruction.address()).setInstruction(Arrays.stream(instruction.tokens()).map(Token::lexeme).collect(Collectors.joining(" ")));
         });
         program.labels().forEach(label -> ram.values().get(label.address()).setLabel(label.token().lexeme()));
 
@@ -884,11 +879,10 @@ public class Computer {
      */
     public void tick() throws IllegalStateException {
         if (s.value(0)) {
-            SIGNALS.forEach(signal -> {
-                if (signal.test(this)) {
-                    microoperations.push(signal.microoperation());
-                }
-            });
+            SIGNALS.stream()
+                .filter(signal -> signal.test(this))
+                .map(Signal::microoperation)
+                .forEach(microoperations::push);
 
             sc.setValue(sc.get() + 1);
         } else {

@@ -57,7 +57,7 @@ public class Utilities {
      * @return {@code T} at the first index of {@code collections} and which now contains the contents of all the other {@code T} instances in {@code collections}.
      */
     public static <T extends Collection<U>, U> T union(Collection<T> collections) {
-        return collections.stream().sequential().reduce((collection1, collection2) -> {
+        return collections.stream().reduce((collection1, collection2) -> {
             collection1.addAll(collection2);
             return collection1;
         }).orElse(null);
