@@ -27,37 +27,37 @@ public class Computer {
     /**
      * The {@link Signal} instances used for determining the microoperations required for an instruction.
      */
-    public static Set<Signal> SIGNALS;
+    public static final Set<Signal> SIGNALS;
 
     /**
      * The minimum number of bits of a binary representation.
      */
-    public static int MIN_SIZE = 1;
+    public static final int MIN_SIZE = 1;
 
     /**
      * The maximum number of bits of a binary representation.
      */
-    public static int MAX_SIZE = (int)Math.floor(Math.log(Integer.MAX_VALUE) / Math.log(2.0)) - 1;
+    public static final int MAX_SIZE = (int)Math.floor(Math.log(Integer.MAX_VALUE) / Math.log(2.0)) - 1;
 
     /**
      * The minimum value of an unsigned binary representation.
      */
-    public static int MIN_VALUE = 0;
+    public static final int MIN_VALUE = 0;
 
     /**
      * The number of bits required to represent an address.
      */
-    public static int ADDRESS_SIZE = 12;
+    public static final int ADDRESS_SIZE = 12;
 
     /**
      * The number of bits required to represent a value.
      */
-    public static int VALUE_SIZE = 16;
+    public static final int VALUE_SIZE = 16;
 
     /**
      * The number of bits required to represent an IO value.
      */
-    public static int IO_SIZE = 8;
+    public static final int IO_SIZE = 8;
 
     static {
         Set<Signal> set = new HashSet<>();

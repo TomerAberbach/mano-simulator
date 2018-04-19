@@ -36,7 +36,7 @@ public class Compiler {
     /**
      * {@link Map} which maps assembly label lexemes to their respective {@link Label} instances.
      */
-    private Map<String, Label> labels;
+    private Map<String, Label> labelMap;
 
     /**
      * The {@link ArrayList} of {@link Instruction} instances which were compiled from this {@link Compiler#source}.
@@ -71,7 +71,7 @@ public class Compiler {
         this.source = source;
 
         tokens = new ArrayDeque<>();
-        labels = new HashMap<>();
+        labelMap = new HashMap<>();
         instructions = new ArrayList<>();
         errors = new ArrayList<>();
 
@@ -94,7 +94,7 @@ public class Compiler {
     private Program compile() {
         tokenize();
         generate();
-        return new Program(start, instructions, new ArrayList<>(labels.values()), errors);
+        return new Program(start, instructions, new ArrayList<>(labelMap.values()), errors);
     }
 
     /**
@@ -126,7 +126,7 @@ public class Compiler {
      * <li>Maps instructions to their respective codes (see {@link Instruction#MEMORY_REFERENCE_INSTRUCTIONS} and {@link Instruction#IMPLICIT_REFERENCE_INSTRUCTIONS}.</li>
      * <li>Interprets directives.</li>
      * <li>Parses decimal and hexadecimal numbers literals.</li>
-     * <li>Collects labels in preparation for calling {@link Compiler#replaceLabels(ArrayList)}.</li>
+     * <li>Collects labelMap in preparation for calling {@link Compiler#replaceLabels(ArrayList)}.</li>
      * </ul>
      * {@link Instruction} instances generated will be added to {@link Compiler#instructions}.
      * All errors are logged as {@link String} instances in {@link Compiler#errors}.
@@ -213,7 +213,7 @@ public class Compiler {
                     } else if (Instruction.IMPLICIT_REFERENCE_INSTRUCTIONS.containsKey(lexeme)) {
                         instructions.add(new Instruction(address, Instruction.IMPLICIT_REFERENCE_INSTRUCTIONS.get(lexeme), token));
                     } else {
-                        errors.add("Invalid instruction token, " + token + (instructions.size() > 0 ? " or potentially unneeded argument after " + instructions.get(instructions.size() - 1).tokens()[0] : "") + ".");
+                        errors.add("Invalid instruction token, " + token + (instructions.isEmpty() ? "" : " or potentially unneeded argument after " + instructions.get(instructions.size() - 1).tokens()[0]) + ".");
                     }
 
                     // Increments the address and checks that it did not go outside the bounds of the RAM
@@ -228,7 +228,7 @@ public class Compiler {
         replaceLabels(labels);
 
         if (start < 0) {
-            start = instructions.size() > 0 ? instructions.get(0).address() : 0;
+            start = instructions.isEmpty() ? 0 : instructions.get(0).address();
         }
     }
 
@@ -241,14 +241,14 @@ public class Compiler {
     }
 
     /**
-     * Treats the current {@link Token} ({@link Compiler#token}) as a {@link Label} and logs it in {@link Compiler#labels}.
+     * Treats the current {@link Token} ({@link Compiler#token}) as a {@link Label} and logs it in {@link Compiler#labelMap}.
      */
     private void label() {
-        if (labels.containsKey(token.lexeme())) {
+        if (labelMap.containsKey(token.lexeme())) {
             errors.add("Duplicate label, " + token + ".");
         } else {
             // Adds the label to the symbol table
-            labels.put(token.lexeme(), new Label(token, address));
+            labelMap.put(token.lexeme(), new Label(token, address));
         }
 
         // Skips the comma
@@ -293,26 +293,27 @@ public class Compiler {
             if (Math.abs(number) >= 0 && Math.abs(number) <= range) {
                 return number < 0 ? range + 1 + number : number;
             }
-        } catch (NumberFormatException ignored) {
+        } catch (NumberFormatException e) {
+            return -1;
         }
 
         return -1;
     }
 
     /**
-     * Replaces any labels found after calling {@link Compiler#generate()} with their hex values in their respective {@link Instruction} instances in {@link Compiler#instructions} using {@link Compiler#labels}.
+     * Replaces any labelMap found after calling {@link Compiler#generate()} with their hex values in their respective {@link Instruction} instances in {@link Compiler#instructions} using {@link Compiler#labelMap}.
      *
-     * @param labels {@link ArrayList} of {@link String} labels to replace using {@link Compiler#labels}.
+     * @param labels {@link ArrayList} of {@link String} labelMap to replace using {@link Compiler#labelMap}.
      */
     private void replaceLabels(ArrayList<String> labels) {
-        // Loops through the instructions to substitute labels for hex
+        // Loops through the instructions to substitute labelMap for hex
         for (int i = 0; i < instructions.size(); i++) {
             // Checks if there was a label argument for the current instruction
             if (labels.get(i) != null) {
                 // Checks if the label was ever defined
-                if (this.labels.containsKey(labels.get(i))) {
+                if (this.labelMap.containsKey(labels.get(i))) {
                     // Adds the address of the label to the instruction hex
-                    instructions.set(i, instructions.get(i).argument(this.labels.get(labels.get(i))));
+                    instructions.set(i, instructions.get(i).argument(this.labelMap.get(labels.get(i))));
                 } else {
                     switch (instructions.get(i).tokens().length) {
                         case 1:

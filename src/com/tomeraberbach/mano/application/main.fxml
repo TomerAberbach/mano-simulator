@@ -1392,7 +1392,7 @@
                                 <Button onAction="#stepOnAction" text="Step"/>
                                 <Button onAction="#resetOnAction" text="Reset"/>
                                 <Text text="Speed:"/>
-                                <Slider fx:id="speedFX" min="1" value="8" minorTickCount="2" majorTickUnit="1"
+                                <Slider fx:id="speedFX" min="1" value="2" minorTickCount="2" majorTickUnit="1"
                                         showTickLabels="true" showTickMarks="true" max="10" HBox.hgrow="ALWAYS"/>
                             </HBox>
 

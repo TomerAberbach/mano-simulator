@@ -17,7 +17,7 @@ import com.tomeraberbach.mano.simulation.RAM;
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.beans.binding.StringBinding;
-import javafx.collections.ObservableList;
+import javafx.beans.property.SimpleIntegerProperty;
 import javafx.concurrent.Task;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
@@ -30,13 +30,10 @@ import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.concurrent.CountDownLatch;
-import java.util.regex.Pattern;
 import java.util.stream.Collectors;
-import java.util.stream.IntStream;
 
 /**
  * JavaFX controller and starting point for the main application window.
@@ -236,7 +233,7 @@ public class Main extends Application {
                 Code code = new Code(file);
                 codes.add(code);
                 codesFX.getTabs().add(code.tab());
-            } catch (FileNotFoundException e) {
+            } catch (IOException e) {
                 consoleFX.setText("Couldn't open " + file + ".");
             }
         }
@@ -318,21 +315,20 @@ public class Main extends Application {
     private void assembleOnAction() {
         if (codesFX.getTabs().size() > 0) {
             resetOnAction();
-
             StringBuilder builder = new StringBuilder();
 
             Tab tab = codes.get(codesFX.getSelectionModel().getSelectedIndex()).tab();
-            Program program = Compiler.compile(((TextArea)tab.getContent()).getText());
+            Program p = Compiler.compile(((TextArea)tab.getContent()).getText());
 
-            if (program.errors().size() > 0) {
+            if (!p.errors().isEmpty()) {
                 builder
                     .append(tab.getText())
                     .append(":\n")
-                    .append(program.errors().stream().collect(Collectors.joining("\n")));
+                    .append(p.errors().stream().collect(Collectors.joining("\n")));
             }
 
             consoleFX.setText(builder.toString());
-            updateSimulation(program);
+            updateSimulation(p);
         }
     }
 
@@ -356,15 +352,18 @@ public class Main extends Application {
      * @param program {@link Program} to load into the {@link Computer} simulation.
      */
     private void updateSimulation(Program program) {
-        if (program.errors().size() > 0) {
-            tabsFX.getSelectionModel().select(1);
-        } else {
-            this.program = program;
-            computer.load(program);
-            ramFX.refresh();
-            tabsFX.getSelectionModel().select(2);
-            new Alert(Alert.AlertType.INFORMATION, "Compilation Successful.").showAndWait();
-        }
+        Platform.runLater(() -> {
+            if (program.errors().isEmpty()) {
+                this.program = program;
+                computer.load(program);
+                microoperationFX.clear();
+                ramFX.refresh();
+                tabsFX.getSelectionModel().select(2);
+                new Alert(Alert.AlertType.INFORMATION, "Compilation Successful.").showAndWait();
+            } else {
+                tabsFX.getSelectionModel().select(1);
+            }
+        });
     }
 
     /**
@@ -383,7 +382,7 @@ public class Main extends Application {
             for (int i = 0; i < codes.size(); i++) {
                 programs[i] = Compiler.compile(((TextArea)codes.get(i).tab().getContent()).getText());
 
-                if (programs[i].errors().size() > 0) {
+                if (!programs[i].errors().isEmpty()) {
                     builder
                         .append(codes.get(i).tab().getText())
                         .append(":\n")
@@ -391,14 +390,14 @@ public class Main extends Application {
                 }
             }
 
-            Program program = Program.union(programs[0].start(), programs);
+            Program p = Program.union(programs[0].start(), programs);
 
-            if (program.conflicts()) {
+            if (p.conflicts()) {
                 builder.append("Conflicting memory addresses between files.\n");
             }
 
             consoleFX.setText(builder.toString());
-            updateSimulation(program);
+            updateSimulation(p);
         }
     }
 
@@ -621,28 +620,21 @@ public class Main extends Application {
      */
     private void bind() {
         scFX.textProperty().bind(computer.scProperty().asString());
-        pcFX.textProperty().bind(computer.pc().stringBinding());
-        arFX.textProperty().bind(computer.ar().stringBinding());
-        irFX.textProperty().bind(computer.ir().stringBinding());
-        drFX.textProperty().bind(computer.dr().stringBinding());
-        acFX.textProperty().bind(computer.ac().stringBinding());
-        trFX.textProperty().bind(computer.tr().stringBinding());
-        inprFX.textProperty().bind(computer.inpr().stringBinding());
-        outrFX.textProperty().bind(new StringBinding() {
-            { super.bind(computer.outr().valueProperty()); }
-
-            @Override
-            protected String computeValue() {
-                return Character.toString((char)computer.outr().value());
-            }
-        });
-        iFX.textProperty().bind(computer.i().stringBinding());
-        sFX.textProperty().bind(computer.s().stringBinding());
-        eFX.textProperty().bind(computer.e().stringBinding());
-        rFX.textProperty().bind(computer.r().stringBinding());
-        ienFX.textProperty().bind(computer.ien().stringBinding());
-        fgiFX.textProperty().bind(computer.fgi().stringBinding());
-        fgoFX.textProperty().bind(computer.fgo().stringBinding());
+        pcFX.textProperty().bind(computer.pc().hexadecimalStringBinding());
+        arFX.textProperty().bind(computer.ar().hexadecimalStringBinding());
+        irFX.textProperty().bind(computer.ir().hexadecimalStringBinding());
+        drFX.textProperty().bind(computer.dr().hexadecimalStringBinding());
+        acFX.textProperty().bind(computer.ac().hexadecimalStringBinding());
+        trFX.textProperty().bind(computer.tr().hexadecimalStringBinding());
+        inprFX.textProperty().bind(computer.inpr().hexadecimalStringBinding());
+        outrFX.textProperty().bind(computer.outr().characterStringBinding());
+        iFX.textProperty().bind(computer.i().hexadecimalStringBinding());
+        sFX.textProperty().bind(computer.s().hexadecimalStringBinding());
+        eFX.textProperty().bind(computer.e().hexadecimalStringBinding());
+        rFX.textProperty().bind(computer.r().hexadecimalStringBinding());
+        ienFX.textProperty().bind(computer.ien().hexadecimalStringBinding());
+        fgiFX.textProperty().bind(computer.fgi().hexadecimalStringBinding());
+        fgoFX.textProperty().bind(computer.fgo().hexadecimalStringBinding());
 
         ramFX.itemsProperty().bind(computer.ram().valuesProperty());
 

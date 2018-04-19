@@ -80,7 +80,7 @@ public class Code implements ChangeListener<String> {
      * @param file {@link File} to load the code document from.
      * @throws FileNotFoundException Occurs if {@code file} could not be accessed.
      */
-    public Code(File file) throws FileNotFoundException {
+    public Code(File file) throws IOException {
         this(file, text(file));
     }
 
@@ -89,14 +89,19 @@ public class Code implements ChangeListener<String> {
      * @return {@link String} representing text from {@code file}.
      * @throws FileNotFoundException Thrown if {@code file} could not be accessed.
      */
-    private static String text(File file) throws FileNotFoundException {
-        return new BufferedReader(new FileReader(file))
-            .lines()
+    private static String text(File file) throws IOException {
+        BufferedReader reader = new BufferedReader(new FileReader(file));
+
+        String text = reader.lines()
             .collect(Collectors.joining(
                 System.getProperty("os.name").toLowerCase().contains("windows") ?
                     "\n\r" :
                     "\n"
             ));
+
+        reader.close();
+
+        return text;
     }
 
     /**
@@ -150,19 +155,21 @@ public class Code implements ChangeListener<String> {
         fileChooser.setTitle("Save As...");
 
         // Gets the new file path
-        File file = fileChooser.showSaveDialog(stage);
+        File f = fileChooser.showSaveDialog(stage);
 
         // Checks if a new file was chosen
-        if (file != null) {
+        if (f != null) {
             try {
-                if (file.createNewFile()) {
+                if (f.createNewFile()) {
                     // Sets the code document's file
-                    this.file = file;
+                    this.file = f;
 
                     // Saves the code
                     return save(stage);
                 }
-            } catch (IOException ignored) { }
+            } catch (IOException e) {
+                return false;
+            }
         }
 
         return false;

@@ -107,7 +107,7 @@ public class Register {
     /**
      * @return {@link StringBinding} representing {@link Register#value} as a hexadecimal {@link String}.
      */
-    public StringBinding stringBinding() {
+    public StringBinding hexadecimalStringBinding() {
         return new StringBinding() {
             { super.bind(value); }
 
@@ -117,6 +117,22 @@ public class Register {
             }
         };
     }
+
+    /**
+     * @return {@link StringBinding} representing {@link Register#value} as character {@link String}.
+     */
+    public StringBinding characterStringBinding() {
+        return new StringBinding() {
+            { super.bind(value); }
+
+            @Override
+            protected String computeValue() {
+                int v = value.get();
+                return v == 0 ? "" : String.valueOf((char)v);
+            }
+        };
+    }
+
 
     /**
      * Loads this {@link Register} with {@code 0}.
@@ -208,7 +224,7 @@ public class Register {
         int value = e.value.get();
 
         for (int i = 0; i < size - 1; i++) {
-            value += value(i) ? Math.pow(2, i + 1) : 0;
+            value += value(i) ? Math.pow(2, i + 1.0) : 0;
         }
 
         e.value.setValue(value(size - 1) ? 1 : 0);
@@ -221,10 +237,10 @@ public class Register {
      * @param e {@link Register} to load with the first bit in this {@link Register} and whose first bit will be loaded into the last bit of this {@link Register}.
      */
     public void shiftRight(Register e) {
-        int value = e.value.get() * (int)Math.pow(2, size - 1);
+        int value = e.value.get() * (int)Math.pow(2, size - 1.0);
 
         for (int i = 1; i < size; i++) {
-            value += value(i) ? Math.pow(2, i - 1) : 0;
+            value += value(i) ? Math.pow(2, i - 1.0) : 0;
         }
 
         e.value.setValue(value(0) ? 1 : 0);
