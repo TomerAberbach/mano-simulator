@@ -3,7 +3,7 @@
 <!--
   ~ Tomer Aberbach
   ~ aberbat1@tcnj.edu
-  ~ 1/3/2018
+  ~ 4/18/2018
   ~ Students at The College of New Jersey are granted
   ~ unlimited use and access to this application and its code.
   -->
@@ -21,14 +21,14 @@
             <MenuItem onAction="#openOnAction" text="Open…"/>
             <MenuItem onAction="#closeOnAction" text="Close"/>
             <SeparatorMenuItem/>
-            <MenuItem onAction="#saveOnAction" text="Save"/>
+            <MenuItem onAction="#saveOnAction" text="Save (CTRL+S)"/>
             <MenuItem onAction="#saveAllOnAction" text="Save All"/>
             <MenuItem onAction="#saveAsOnAction" text="Save As…"/>
             <SeparatorMenuItem/>
             <MenuItem onAction="#quitOnAction" text="Quit"/>
         </Menu>
         <Menu text="Assemble">
-            <MenuItem onAction="#assembleOnAction" text="Assemble"/>
+            <MenuItem onAction="#assembleOnAction" text="Assemble (CTRL+D)"/>
             <MenuItem onAction="#assembleAllOnAction" text="Assemble All"/>
         </Menu>
         <Menu text="Help">

@@ -1,7 +1,7 @@
 /*
  * Tomer Aberbach
  * aberbat1@tcnj.edu
- * 1/3/2018
+ * 4/18/2018
  * Students at The College of New Jersey are granted
  * unlimited use and access to this application and its code.
  */
@@ -56,6 +56,7 @@ public class Main extends Application {
         "Students at The College of New Jersey are granted\n" +
         "unlimited use and access to this application and\n" +
         "its code.";
+
     /**
      * {@link KeyCombination} for saving.
      */
