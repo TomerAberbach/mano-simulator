@@ -14,7 +14,7 @@ Chapter 5, pp 123-172.
 Download the latest jar from [releases](https://github.com/TomerAberbach/mano-simulator/releases) and then run:
 
 ```sh
-java -jar mano-simulator.jar
+$ java -jar mano-simulator.jar
 ```
 
 ## Contributing
