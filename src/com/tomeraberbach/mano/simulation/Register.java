@@ -187,7 +187,7 @@ public class Register {
      */
     public void add(int value, Register e) {
         validate(value);
-        e.value.setValue(this.value.get() + value > max() ? (Computer.bit(0, this.value.get() + value - max()) ? 1 : 0) : 0);
+        e.value.setValue(this.value.get() + value > max() ? 1 : 0);
         this.value.setValue((this.value.get() + value) % (max() + 1));
     }
 

@@ -885,8 +885,6 @@ public class Computer {
                 .forEach(microoperations::push);
 
             sc.setValue(sc.get() + 1);
-        } else {
-            throw new IllegalStateException("The stop or go S flip-flop of the computer must be asserted in order to run a program.");
         }
     }
 }
