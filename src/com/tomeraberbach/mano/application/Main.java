@@ -1,7 +1,7 @@
 /*
  * Tomer Aberbach
  * aberbat1@tcnj.edu
- * 4/18/2018
+ * 10/30/2018
  * Students at The College of New Jersey are granted
  * unlimited use and access to this application and its code.
  */
@@ -49,7 +49,7 @@ public class Main extends Application {
      */
     private static final String ABOUT = "Tomer Aberbach\n" +
         "aberbat1@tcnj.edu\n" +
-        "4/18/2018\n" +
+        "10/30/2018\n" +
         "Students at The College of New Jersey are granted\n" +
         "unlimited use and access to this application and\n" +
         "its code.";
