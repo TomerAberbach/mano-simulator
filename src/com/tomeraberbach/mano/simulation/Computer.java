@@ -147,8 +147,8 @@ public class Computer {
             new Control("D7'IT3",
                 computer -> !computer.decoder.value(7) && computer.i.value(0) && computer.sc() == 3
             ),
-            new Microoperation("AR <- M[AR]",
-                computer -> computer.ar.load(computer.ram.read(computer.ar.value()))
+            new Microoperation("AR <- M[AR]", 
+            		computer -> computer.ar.load(computer.ram.read(computer.ar.value()))
             )
         ));
 

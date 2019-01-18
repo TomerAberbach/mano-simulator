@@ -43,7 +43,12 @@ public class Microoperation {
      * @param computer {@link Computer} which will be passed into {@link Microoperation#consumer}.
      */
     public void execute(Computer computer) {
-        consumer.accept(computer);
+    	try {
+    		consumer.accept(computer);
+    	} catch (Exception e) {
+    		System.out.println("Invalid instruction at " + Integer.toHexString(computer.pc().value()) + ":");
+    		e.printStackTrace();
+    	}
     }
 
 

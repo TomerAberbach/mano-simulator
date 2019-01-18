@@ -10,10 +10,7 @@ package com.tomeraberbach.mano.application;
 
 import com.tomeraberbach.mano.assembly.Compiler;
 import com.tomeraberbach.mano.assembly.Program;
-import com.tomeraberbach.mano.simulation.Computer;
-import com.tomeraberbach.mano.simulation.Memory;
-import com.tomeraberbach.mano.simulation.Microoperation;
-import com.tomeraberbach.mano.simulation.RAM;
+import com.tomeraberbach.mano.simulation.*;
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.beans.binding.StringBinding;
@@ -25,20 +22,66 @@ import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.input.*;
-import javafx.scene.layout.GridPane;
+import javafx.scene.layout.*;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 
 import java.io.File;
 import java.io.IOException;
+import java.security.InvalidAlgorithmParameterException;
 import java.util.ArrayList;
+import java.util.Scanner;
+import java.util.HashSet;
 import java.util.concurrent.CountDownLatch;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * JavaFX controller and starting point for the main application window.
  */
 public class Main extends Application {
+	/*
+	 * Explanation of Breakpoint syntax
+	 */
+	private static final String BPSYNTAX = 
+			"To break between 0xE00 and 0xFFF: @e00:fff\n" + 
+			"To break at exactly 0xABC: @abc\n" + 
+			"To break at instruction BUN: %bun\n" + 
+			"To break at any instruction but BUN: !%bun\n" + 
+			"\n" + 
+			"Syntax:\n" + 
+			"	expr:\n" + 
+			"		@position = at some PC range\n" + 
+			"		%instr    = when instruction is seen\n" + 
+			"		(expr)    = group expr\n" + 
+			"		!expr     = negate expression\n" + 
+			"	position:\n" + 
+			"		hex : hex = positive range\n" + 
+			"		hex - hex = negative range\n" + 
+			"		hex       = direct position\n" + 
+			"	instr:\n" + 
+			"		name      = instruction name, case-insensitive";
+	/*
+	 * Explanation of the Skip syntax
+	 */
+	private static final String SKSYNTAX = 
+			"To skip anything between 0xE00 and 0xFFF: @e00:fff\n" + 
+			"To skip exactly 0xABC: @abc\n" + 
+			"To skip all BUN instructions: %bun\n" + 
+			"To skip all instructions but BUN: !%bun\n" + 
+			"\n" + 
+			"Syntax:\n" + 
+			"	expr:\n" + 
+			"		@position = at some PC range\n" + 
+			"		%instr    = when instruction is seen\n" + 
+			"		(expr)    = group expr\n" + 
+			"		!expr     = negate expression\n" + 
+			"	position:\n" + 
+			"		hex : hex = positive range\n" + 
+			"		hex - hex = negative range\n" + 
+			"		hex       = direct position\n" + 
+			"	instr:\n" + 
+			"		name      = instruction name, case-insensitive";
     /**
      * Title of the application.
      */
@@ -182,6 +225,12 @@ public class Main extends Application {
      */
     private Task<Void> task;
 
+    /**
+     * The {@link IBreakPoint}s that we care to skip/break on
+     */
+    private HashSet<IBreakPoint> breakPoints;
+    private HashSet<IBreakPoint> skipPositions;
+
 
     /**
      * Initializes the application window with an empty {@link ArrayList} of {@link Code} documents.
@@ -190,6 +239,8 @@ public class Main extends Application {
         codes = new ArrayList<>();
         computer = new Computer();
         program = new Program(0, new ArrayList<>(), new ArrayList<>(), new ArrayList<>());
+        breakPoints =   new HashSet<IBreakPoint>();
+        skipPositions = new HashSet<IBreakPoint>();
     }
 
     /**
@@ -493,6 +544,9 @@ public class Main extends Application {
                         latch.await();
 
                         while (!computer.microoperations().isEmpty()) {
+                                    if (breakPoints.stream().anyMatch(t -> t.shouldBreak(computer))) {
+                                    	break;
+                                    }
                             Microoperation microoperation = computer.microoperations().poll();
 
                             if (microoperation != null) {
@@ -501,8 +555,8 @@ public class Main extends Application {
                                     microoperation.execute(computer);
                                     ramFX.refresh();
                                 });
-
-                                Thread.sleep(Math.round(800 / Math.pow(speedFX.getValue(), 3.0)));
+                                if (speedFX.getValue() <= 0.9*speedFX.getMax())
+                                	Thread.sleep(Math.round(800 / Math.pow(speedFX.getValue(), 3.0)));
                             }
                         }
                     }
@@ -527,31 +581,121 @@ public class Main extends Application {
         if (task != null && task.isRunning()) {
             task.cancel();
         }
-
         runFX.setSelected(false);
-        runFX.setText("Run");
-        if (computer.s().value(0)) {
-            if (computer.microoperations().isEmpty()) {
-                computer.tick();
-            }
 
-            Platform.runLater(() -> {
-                if (!computer.microoperations().isEmpty()) {
-                    Microoperation microoperation = computer.microoperations().poll();
+        {
+            runFX.setText("Stop");
+            int pc = computer.pc().value();
+            task = new Task<Void>() {
+                @Override
+                protected Void call() throws Exception {
+                    while (computer.pc().value() == pc || skipPositions.stream().anyMatch(t -> t.shouldBreak(computer))) {
+                        CountDownLatch latch = new CountDownLatch(1);
 
-                    if (microoperation != null) {
-                        microoperationFX.setText(microoperation.toString());
-                        microoperation.execute(computer);
-                        ramFX.refresh();
+                        if (computer.microoperations().isEmpty()) {
+                            Platform.runLater(() -> {
+                                computer.tick();
+                                latch.countDown();
+                            });
+                        } else {
+                            latch.countDown();
+                        }
+
+                        latch.await();
+
+                        while (!computer.microoperations().isEmpty()) {
+                            Microoperation microoperation = computer.microoperations().poll();
+
+                            if (microoperation != null) {
+                                Platform.runLater(() -> {
+                                    microoperationFX.setText(microoperation.toString());
+                                    microoperation.execute(computer);
+                                    ramFX.refresh();
+                                });
+                            }
+                        }
                     }
+
+                    return null;
                 }
-            });
+            };
+
+            Thread thread = new Thread(task);
+            thread.setDaemon(true);
+            thread.start();
         }
+
     }
 
-    /**
-     * Called when the 'Export' button is pressed.
-     */
+    @FXML
+    private void breakOnAction() {
+		 TextArea textArea = new TextArea(breakPoints.stream().map(t -> t == null ? "\n" : t.encode() + '\n').reduce("", String::concat));
+	        textArea.setEditable(true);
+	        textArea.setWrapText(false);
+	        textArea.setFont(Code.CODE_FONT);
+
+	        TextArea textArea1 = new TextArea(BPSYNTAX);
+	        textArea1.setEditable(false);
+	        textArea1.setWrapText(false);
+	        textArea1.setFont(Code.CODE_FONT);
+
+	        GridPane gridPane = new GridPane();
+	        gridPane.setMaxWidth(Double.MAX_VALUE);
+	        gridPane.addColumn(0, textArea, textArea1);
+
+	        Alert alert = new Alert(Alert.AlertType.INFORMATION, "", new ButtonType("Set", ButtonBar.ButtonData.OK_DONE));
+	        alert.setTitle("Breakpoints");
+	        alert.setHeaderText("Break...");
+	        alert.getDialogPane().setContent(gridPane);
+	        alert.showAndWait().ifPresent(type -> {
+	            if (type.getButtonData() == ButtonBar.ButtonData.OK_DONE) {
+	            	breakPoints.clear();
+	                Stream.of(textArea.getText().split("\n")).map(arg0 -> {
+						try {
+							return BreakPointParser.parse(arg0);
+						} catch (InvalidAlgorithmParameterException e) {
+							e.printStackTrace();
+							return null;
+						}
+					}).forEach(breakPoints::add);
+	            }
+	        });
+    }
+    @FXML
+    private void skipOnAction() {
+		 TextArea textArea = new TextArea(skipPositions.stream().map(t -> t.encode() + '\n').reduce("", String::concat));
+	        textArea.setEditable(true);
+	        textArea.setWrapText(false);
+	        textArea.setFont(Code.CODE_FONT);
+
+	        TextArea textArea1 = new TextArea(SKSYNTAX);
+	        textArea1.setEditable(false);
+	        textArea1.setWrapText(false);
+	        textArea1.setFont(Code.CODE_FONT);
+
+	        GridPane gridPane = new GridPane();
+	        gridPane.setMaxWidth(Double.MAX_VALUE);
+	        gridPane.addColumn(0, textArea, textArea1);
+
+	        Alert alert = new Alert(Alert.AlertType.INFORMATION, "", new ButtonType("Set", ButtonBar.ButtonData.OK_DONE));
+	        alert.setTitle("Step skips");
+	        alert.setHeaderText("Skip...");
+	        alert.getDialogPane().setContent(gridPane);
+	        alert.showAndWait().ifPresent(type -> {
+	            if (type.getButtonData() == ButtonBar.ButtonData.OK_DONE) {
+	            	skipPositions.clear();
+	                Stream.of(textArea.getText().split("\n")).map(t -> {
+						try {
+							return BreakPointParser.parse(t);
+						} catch (InvalidAlgorithmParameterException e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
+							return null;
+						}
+					}).forEach(skipPositions::add);
+	            }
+	        });
+    }
     @FXML
     private void exportOnAction() {
         TextArea textArea = new TextArea(computer.ram().toString());

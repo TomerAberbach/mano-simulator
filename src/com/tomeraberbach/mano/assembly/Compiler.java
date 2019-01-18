@@ -108,7 +108,7 @@ public class Compiler {
         // Loops through the lines of the source code
         for (int line = 0; line < lines.length; line++) {
             // Splits the line into lexemes at spaces and value boundaries
-            String[] lexemes = lines[line].replaceAll("/.*$", "").replaceAll(",", " , ").split("\\s+");
+            String[] lexemes = lines[line].replaceAll("/.*$", "").replaceAll(";.*$", "").replaceAll(",", " , ").split("\\s+");
 
             // Loops through the lexemes to initialize tokens
             for (int position = 0; position < lexemes.length; position++) {

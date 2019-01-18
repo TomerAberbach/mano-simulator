@@ -8,6 +8,15 @@
 
 package com.tomeraberbach.mano.application;
 
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.util.stream.Collectors;
+
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.value.ChangeListener;
@@ -19,9 +28,6 @@ import javafx.scene.control.TextArea;
 import javafx.scene.text.Font;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
-
-import java.io.*;
-import java.util.stream.Collectors;
 
 /**
  * Class used to represent assembly code documents in the {@link Main} application.
