@@ -4,6 +4,7 @@ import java.security.InvalidAlgorithmParameterException;
 
 public class BreakPointParser {
 	static {
+		@SuppressWarnings("unused")
 		IBreakPoint instances[] = {
 			new UnaryLogicalBreakPoint(null, null),
 			BinaryLogicalBreakPoint.BreakIfEither(null, null),
@@ -28,6 +29,7 @@ public class BreakPointParser {
 		case '%':
 			return InstructionBreakPoint.instance.parse(desc);
 		case '@':
+		case '^':
 			return PCBreakPoint.instance.parse(desc);
 		}
 		throw new InvalidAlgorithmParameterException("Invalid lookahead " + c);

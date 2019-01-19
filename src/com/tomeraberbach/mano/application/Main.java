@@ -8,33 +8,49 @@
 
 package com.tomeraberbach.mano.application;
 
+import java.io.File;
+import java.io.IOException;
+import java.security.InvalidAlgorithmParameterException;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.concurrent.CountDownLatch;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
 import com.tomeraberbach.mano.assembly.Compiler;
 import com.tomeraberbach.mano.assembly.Program;
-import com.tomeraberbach.mano.simulation.*;
+import com.tomeraberbach.mano.simulation.BreakPointParser;
+import com.tomeraberbach.mano.simulation.Computer;
+import com.tomeraberbach.mano.simulation.IBreakPoint;
+import com.tomeraberbach.mano.simulation.Memory;
+import com.tomeraberbach.mano.simulation.Microoperation;
+import com.tomeraberbach.mano.simulation.RAM;
+
 import javafx.application.Application;
 import javafx.application.Platform;
-import javafx.beans.binding.StringBinding;
-import javafx.beans.property.SimpleIntegerProperty;
 import javafx.concurrent.Task;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
-import javafx.scene.control.*;
-import javafx.scene.input.*;
-import javafx.scene.layout.*;
+import javafx.scene.control.Alert;
+import javafx.scene.control.ButtonBar;
+import javafx.scene.control.ButtonType;
+import javafx.scene.control.Slider;
+import javafx.scene.control.Tab;
+import javafx.scene.control.TabPane;
+import javafx.scene.control.TableView;
+import javafx.scene.control.TextArea;
+import javafx.scene.control.TextField;
+import javafx.scene.control.ToggleButton;
+import javafx.scene.input.Clipboard;
+import javafx.scene.input.ClipboardContent;
+import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyCodeCombination;
+import javafx.scene.input.KeyCombination;
+import javafx.scene.layout.GridPane;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
-
-import java.io.File;
-import java.io.IOException;
-import java.security.InvalidAlgorithmParameterException;
-import java.util.ArrayList;
-import java.util.Scanner;
-import java.util.HashSet;
-import java.util.concurrent.CountDownLatch;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 /**
  * JavaFX controller and starting point for the main application window.
@@ -43,24 +59,33 @@ public class Main extends Application {
 	/*
 	 * Explanation of Breakpoint syntax
 	 */
-	private static final String BPSYNTAX = 
-			"To break between 0xE00 and 0xFFF: @e00:fff\n" + 
-			"To break at exactly 0xABC: @abc\n" + 
-			"To break at instruction BUN: %bun\n" + 
-			"To break at any instruction but BUN: !%bun\n" + 
-			"\n" + 
+	private static final String BPGRAMM =
 			"Syntax:\n" + 
 			"	expr:\n" + 
-			"		@position = at some PC range\n" + 
-			"		%instr    = when instruction is seen\n" + 
-			"		(expr)    = group expr\n" + 
-			"		!expr     = negate expression\n" + 
+			"		@position      = at some PC range\n" + 
+			"		%instr         = when instruction is seen\n" + 
+			"		^symbol        = when pc has the given label\n" + 
+			"		^*symbol       = when pc is equal to the address in RAM at given label\n" + 
+			"		(expr)         = group expr\n" + 
+			"		!expr          = negate expression\n" + 
+			"		|(expr)(expr)  = when either is hit\n" + 
+			"		&(expr)(expr)  = when both are hit\n" + 
 			"	position:\n" + 
 			"		hex : hex = positive range\n" + 
 			"		hex - hex = negative range\n" + 
 			"		hex       = direct position\n" + 
 			"	instr:\n" + 
 			"		name      = instruction name, case-insensitive";
+	private static final String BPSYNTAX = 
+			"To break between 0xE00 and 0xFFF: @e00:fff\n" + 
+			"To break at exactly 0xABC: @abc\n" + 
+			"To break at symbol debug: ^debug\n" + 
+			"To break at range e00 to fff if the value at clltmp is equal to pc (called a library function):\n" + 
+			"\t\t&(^*clltmp)(@e00:fff)\n" + 
+			"To break at instruction BUN: %bun\n" + 
+			"To break at any instruction but BUN: !%bun\n" + 
+			"\n" + 
+			BPGRAMM;
 	/*
 	 * Explanation of the Skip syntax
 	 */
@@ -70,18 +95,7 @@ public class Main extends Application {
 			"To skip all BUN instructions: %bun\n" + 
 			"To skip all instructions but BUN: !%bun\n" + 
 			"\n" + 
-			"Syntax:\n" + 
-			"	expr:\n" + 
-			"		@position = at some PC range\n" + 
-			"		%instr    = when instruction is seen\n" + 
-			"		(expr)    = group expr\n" + 
-			"		!expr     = negate expression\n" + 
-			"	position:\n" + 
-			"		hex : hex = positive range\n" + 
-			"		hex - hex = negative range\n" + 
-			"		hex       = direct position\n" + 
-			"	instr:\n" + 
-			"		name      = instruction name, case-insensitive";
+			BPGRAMM;
     /**
      * Title of the application.
      */
@@ -542,11 +556,9 @@ public class Main extends Application {
                         }
 
                         latch.await();
-
+                        if (breakPoints.stream().anyMatch(t -> t.shouldBreak(computer)))
+                        	break;
                         while (!computer.microoperations().isEmpty()) {
-                                    if (breakPoints.stream().anyMatch(t -> t.shouldBreak(computer))) {
-                                    	break;
-                                    }
                             Microoperation microoperation = computer.microoperations().poll();
 
                             if (microoperation != null) {

@@ -14,6 +14,7 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -44,7 +45,11 @@ public class RAM {
      * The {@link Integer} values property currently in this {@link RAM}.
      */
     private SimpleObjectProperty<ObservableList<Memory>> valuesProperty;
-
+    /**
+     * A cache that maps symbols to locations, maintained by breakpoints
+     */
+    public HashMap<String, Integer> labelCache;
+    
     /**
      * Constructor which is the equivalent of calling {@link RAM#RAM(int, int)} arguments {@link Computer#ADDRESS_SIZE} and {@link Computer#VALUE_SIZE}.
      */
@@ -67,6 +72,7 @@ public class RAM {
 
         values = IntStream.rangeClosed(0, maxAddress()).sequential().mapToObj(i -> new Memory("", Utilities.hex(i, 3), 0, "")).collect(Collectors.toCollection(ArrayList::new));
         valuesProperty = new SimpleObjectProperty<>(FXCollections.observableArrayList(values));
+        labelCache = new HashMap<String, Integer>();
     }
 
     /**
