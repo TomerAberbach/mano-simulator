@@ -1,11 +1,3 @@
-/*
- * Tomer Aberbach
- * aberbat1@tcnj.edu
- * 10/30/2018
- * Students at The College of New Jersey are granted
- * unlimited use and access to this application and its code.
- */
-
 package com.tomeraberbach.mano.assembly;
 
 /**
