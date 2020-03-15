@@ -11,6 +11,8 @@ Chapter 5, pp 123-172.
 
 ## Usage
 
+Make sure you have Java and JavaFX installed. Some Java installations bundle JavaFX, but some do not.
+
 Download the latest jar from [releases](https://github.com/TomerAberbach/mano-simulator/releases) and then run:
 
 ```sh
