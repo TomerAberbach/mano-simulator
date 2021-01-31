@@ -21,4 +21,4 @@ $ java -jar mano-simulator.jar
 
 ## License
 
-[MIT](https://github.com/TomerAberbach/mano-simulator/blob/master/license) © [Tomer Aberbach](https://github.com/TomerAberbach)
+[MIT](https://github.com/TomerAberbach/mano-simulator/blob/main/license) © [Tomer Aberbach](https://github.com/TomerAberbach)
