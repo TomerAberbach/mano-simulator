@@ -1,5 +1,1 @@
-*.iml
-.idea/
-out/
-META-INF/
-*.jar
+target

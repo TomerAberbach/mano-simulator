@@ -40,8 +40,8 @@ public class Main extends Application {
      * Text displayed in the 'About' dialog.
      */
     private static final String ABOUT = "Tomer Aberbach\n" +
-        "aberbat1@tcnj.edu\n" +
-        "10/30/2018\n" +
+        "tomeraberbach@gmail.com\n" +
+        "04/26/2021\n" +
         "Students at The College of New Jersey are granted\n" +
         "unlimited use and access to this application and\n" +
         "its code.";
@@ -577,7 +577,7 @@ public class Main extends Application {
     @Override
     public void start(Stage stage) throws IOException {
         // Loads the main application and starts it
-        FXMLLoader loader = new FXMLLoader(getClass().getResource("main.fxml"));
+        FXMLLoader loader = new FXMLLoader(getClass().getResource("/main.fxml"));
         Parent root = loader.load();
 
         Main main = loader.getController();
