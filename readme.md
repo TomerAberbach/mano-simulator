@@ -19,7 +19,7 @@ Download the latest jar from [releases](https://github.com/TomerAberbach/mano-si
 $ java -jar mano-simulator.jar
 ```
 
-[Example mano programs](./examples.md)
+See [example programs](examples.md).
 
 ## License
 
