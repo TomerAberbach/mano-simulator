@@ -10,47 +10,41 @@ import com.tomeraberbach.mano.simulation.RAM;
  * Chapter 5, pp 123-172.
  */
 public class Label {
-    /**
-     * The {@link Token} which represented this {@link Label} in source code.
-     */
-    private Token token;
+  /** The {@link Token} which represented this {@link Label} in source code. */
+  private Token token;
 
-    /**
-     * The address in {@link RAM} which this {@link Label} refers to.
-     */
-    private int address;
+  /** The address in {@link RAM} which this {@link Label} refers to. */
+  private int address;
 
+  /**
+   * @param token The {@link Token} which represented this {@link Label} in source code.
+   * @param address The address in {@link RAM} which this {@link Label} refers to.
+   */
+  public Label(Token token, int address) {
+    this.token = token;
+    this.address = address;
+  }
 
-    /**
-     * @param token   The {@link Token} which represented this {@link Label} in source code.
-     * @param address The address in {@link RAM} which this {@link Label} refers to.
-     */
-    public Label(Token token, int address) {
-        this.token = token;
-        this.address = address;
-    }
+  /**
+   * @return {@link Label#token}.
+   */
+  public Token token() {
+    return token;
+  }
 
+  /**
+   * @return {@link Label#address}.
+   */
+  public int address() {
+    return address;
+  }
 
-    /**
-     * @return {@link Label#token}.
-     */
-    public Token token() {
-        return token;
-    }
-
-    /**
-     * @return {@link Label#address}.
-     */
-    public int address() {
-        return address;
-    }
-
-
-    /**
-     * @return {@link String} which is the result of calling {@link Token#toString()} on this {@link Label#token}.
-     */
-    @Override
-    public String toString() {
-        return token.toString();
-    }
+  /**
+   * @return {@link String} which is the result of calling {@link Token#toString()} on this {@link
+   *     Label#token}.
+   */
+  @Override
+  public String toString() {
+    return token.toString();
+  }
 }
