@@ -10,7 +10,7 @@
     <plugins>
       <plugin>
         <artifactId>maven-shade-plugin</artifactId>
-        <version>3.2.4</version>
+        <version>3.4.0</version>
         <executions>
           <execution>
             <phase>package</phase>
@@ -33,5 +33,6 @@
     <maven.compiler.target>11</maven.compiler.target>
     <maven.compiler.source>11</maven.compiler.source>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <javafx.version>19</javafx.version>
   </properties>
 </project>
