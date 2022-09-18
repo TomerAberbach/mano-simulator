@@ -333,27 +333,37 @@ public class Compiler {
   private void replaceLabels(ArrayList<String> labels) {
     // Loops through the instructions to substitute labelMap for hex
     for (int i = 0; i < instructions.size(); i++) {
-      // Checks if there was a label argument for the current instruction
-      if (labels.get(i) != null) {
-        // Checks if the label was ever defined
-        if (this.labelMap.containsKey(labels.get(i))) {
-          // Adds the address of the label to the instruction hex
-          instructions.set(i, instructions.get(i).argument(this.labelMap.get(labels.get(i))));
-        } else {
-          switch (instructions.get(i).tokens().length) {
-            case 1:
-              errors.add("Unrecognized label name, " + instructions.get(i).tokens()[0] + ".");
-              break;
-            case 2:
-              errors.add(
-                  "Unrecognized label name, "
-                      + instructions.get(i).tokens()[1]
-                      + " or potentially missing argument after "
-                      + instructions.get(i).tokens()[0]
-                      + ".");
-              break;
-          }
-        }
+      String label = labels.get(i);
+
+      if (label == null) {
+        continue;
+      }
+
+      // Checks if the label was ever defined
+      if (this.labelMap.containsKey(label)) {
+        // Adds the address of the label to the instruction hex
+        instructions.set(i, instructions.get(i).argument(this.labelMap.get(label)));
+        continue;
+      }
+
+      Token[] tokens = instructions.get(i).tokens();
+
+      switch (tokens.length) {
+        case 1:
+          errors.add("Unrecognized label name, " + tokens[0] + ".");
+          break;
+        case 2:
+        case 3:
+          errors.add(
+              "Unrecognized label name, "
+                  + tokens[1]
+                  + " or potentially missing argument after "
+                  + tokens[0]
+                  + ".");
+          break;
+        default:
+          errors.add(
+              "An unexpected error occurred while processing the following: " + tokens + ".");
       }
     }
   }
