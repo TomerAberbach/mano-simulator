@@ -4,7 +4,7 @@
   <groupId>com.tomeraberbach</groupId>
   <artifactId>mano-simulator</artifactId>
   <name>mano-simulator</name>
-  <version>1.0-SNAPSHOT</version>
+  <version>1.1-SNAPSHOT</version>
   <url>https://github.com/TomerAberbach/mano-simulator</url>
   <build>
     <plugins>

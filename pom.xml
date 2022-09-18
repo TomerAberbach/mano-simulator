@@ -2,7 +2,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>com.tomeraberbach</groupId>
   <artifactId>mano-simulator</artifactId>
-  <version>1.0-SNAPSHOT</version>
+  <version>1.1-SNAPSHOT</version>
   <packaging>jar</packaging>
   <name>mano-simulator</name>
   <url>https://github.com/TomerAberbach/mano-simulator</url>
