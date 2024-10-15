@@ -32,7 +32,7 @@ public class Main extends Application {
   /** Text displayed in the 'About' dialog. */
   private static final String ABOUT =
       "Tomer Aberbach\n"
-          + "tomeraberbach@gmail.com\n"
+          + "tomer@aberba.ch\n"
           + "04/26/2021\n"
           + "Students at The College of New Jersey are granted\n"
           + "unlimited use and access to this application and\n"
